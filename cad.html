@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CAD System</title>
+  <style>
+    body { background:#0d0f12; color:white; font-family:Arial; margin:0; }
+    .header { background:#111418; padding:20px; text-align:center;
+      font-size:28px; font-weight:bold; color:#4aa3ff; }
+    .infoBox { padding:15px; background:#151a20; border-bottom:1px solid #1f2730; }
+  </style>
+</head>
+
+<body>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const role = params.get("role");
+
+  // CAD is allowed for ALL ranks
+</script>
+
+<div class="header">CAD SYSTEM</div>
+
+<div class="infoBox">
+  <b>Badge:</b> <span id="b"></span><br>
+  <b>Callsign:</b> <span id="c"></span><br>
+  <b>Department:</b> <span id="d"></span><br>
+  <b>Rank:</b> <span id="r"></span>
+</div>
+
+<script>
+  document.getElementById("b").innerText = params.get("badge");
+  document.getElementById("c").innerText = params.get("callsign");
+  document.getElementById("d").innerText = params.get("department");
+  document.getElementById("r").innerText = params.get("rank");
+</script>
+
+</body>
+</html>

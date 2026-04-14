@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dispatch Console</title>
+  <style>
+    body {
+      background: #0d0f12;
+      color: white;
+      font-family: Arial;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .panel {
+      background: #111418;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #1e2630;
+      flex: 1;
+      height: 90vh;
+      overflow-y: auto;
+    }
+
+    h2 {
+      color: #4aa3ff;
+      margin-top: 0;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #0f1317;
+      border: 1px solid #1f2730;
+      color: white;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background: #4aa3ff;
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2d8be6;
+    }
+
+    .unitBox, .callBox, .radioMsg {
+      background: #0f1317;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #1f2730;
+      margin-bottom: 10px;
+    }
+
+    .statusBtn {
+      padding: 5px 10px;
+      margin: 3px;
+      background: #2d8be6;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- UNITS PANEL -->
+<div class="panel">
+  <h2>Active Units</h2>
+  <div id="unitList"></div>
+</div>
+
+<!-- CALL CREATION -->
+<div class="panel">
+  <h2>Create Call</h2>
+
+  <input id="callTitle" placeholder="Call Title">
+  <input id="callLocation" placeholder="Location">
+  <textarea id="callDetails" placeholder="Details (optional)"></textarea>
+
+  <button onclick="createCall()">Create Call</button>
+
+  <h2>Radio</h2>
+  <input id="radioInput" placeholder="Send Radio Message">
+  <button onclick="sendRadio()">Send</button>
+
+  <button onclick="sendPriority()">⚠ Priority Tone</button>
+  <button onclick="sendPanic()">🚨 Panic Alert</button>
+</div>
+
+<!-- RADIO LOG -->
+<div class="panel">
+  <h2>Radio Log</h2>
+  <div id="radioLog"></div>
+
+  <h2>Active Calls</h2>
+  <div id="callList"></div>
+</div>
+
+<script>
+// ===============================
+// SYNC ENGINE
+// ===============================
+if (!localStorage.getItem("dispatchData")) {
+  localStorage.setItem("dispatchData", JSON.stringify({
+    units: [],
+    calls: [],
+    radio: []
+  }));
+}
+
+function getData() {
+  return JSON.parse(localStorage.getItem("dispatchData"));
+}
+
+function saveData(data) {
+  localStorage.setItem("dispatchData", JSON.stringify(data));
+  window.dispatchEvent(new Event("storage"));
+}
+
+// ===============================
+// RENDER FUNCTIONS
+// ===============================
+function renderUnits() {
+  const data = getData();
+  const box = document.getElementById("unitList");
+  box.innerHTML = "";
+
+  data.units.forEach((u, i) => {
+    box.innerHTML += `
+      <div class="unitBox">
+        <b>${u.callsign}</b><br>
+        Status: ${u.status}<br><br>
+        <button class="statusBtn" onclick="setStatus(${i}, '10-8')">10-8</button>
+        <button class="statusBtn" onclick="setStatus(${i}, '10-6')">10-6</button>
+        <button class="statusBtn" onclick="setStatus(${i}, '10-7')">10-7</button>
+        <button class="statusBtn" onclick="setStatus(${i}, '10-23')">10-23</button>
+        <button class="statusBtn" onclick="setStatus(${i}, '10-97')">10-97</button>
+      </div>
+    `;
+  });
+}
+
+function renderRadio() {
+  const data = getData();
+  const box = document.getElementById("radioLog");
+  box.innerHTML = "";
+
+  data.radio.slice().reverse().forEach(msg => {
+    box.innerHTML += `<div class="radioMsg">${msg}</div>`;
+  });
+}
+
+function renderCalls() {
+  const data = getData();
+  const box = document.getElementById("callList");
+  box.innerHTML = "";
+
+  data.calls.slice().reverse().forEach(c => {
+    box.innerHTML += `
+      <div class="callBox">
+        <b>${c.title}</b><br>
+        Location: ${c.loc}<br>
+        ${c.det ? "Details: " + c.det : ""}
+      </div>
+    `;
+  });
+}
+
+// ===============================
+// DISPATCH ACTIONS
+// ===============================
+function setStatus(i, status) {
+  const data = getData();
+  data.units[i].status = status;
+  data.radio.push(`DISPATCH → ${data.units[i].callsign}: Status set to ${status}`);
+  saveData(data);
+}
+
+function sendRadio() {
+  const msg = document.getElementById("radioInput").value;
+  if (!msg) return;
+
+  const data = getData();
+  data.radio.push(`DISPATCH: ${msg}`);
+  saveData(data);
+
+  document.getElementById("radioInput").value = "";
+}
+
+function createCall() {
+  const title = document.getElementById("callTitle").value;
+  const loc = document.getElementById("callLocation").value;
+  const det = document.getElementById("callDetails").value;
+
+  if (!title || !loc) return;
+
+  const data = getData();
+  data.calls.push({
+    title,
+    loc,
+    det,
+    id: Date.now()
+  });
+
+  data.radio.push(`CALL CREATED → ${title} at ${loc}`);
+  saveData(data);
+
+  document.getElementById("callTitle").value = "";
+  document.getElementById("callLocation").value = "";
+  document.getElementById("callDetails").value = "";
+}
+
+function sendPriority() {
+  const data = getData();
+  data.radio.push("⚠ PRIORITY TONE ACTIVATED");
+  saveData(data);
+}
+
+function sendPanic() {
+  const data = getData();
+  data.radio.push("🚨 PANIC ALERT RECEIVED");
+  saveData(data);
+}
+
+// ===============================
+// LISTEN FOR SYNC UPDATES
+// ===============================
+window.addEventListener("storage", () => {
+  renderUnits();
+  renderRadio();
+  renderCalls();
+});
+
+// Initial render
+renderUnits();
+renderRadio();
+renderCalls();
+</script>
+
+</body>
+</html>
