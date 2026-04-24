@@ -1,121 +1,147 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel</title>
-  <style>
-    body {
-      background: #0d0f12;
-      color: white;
-      font-family: Arial;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .title {
-      font-size: 30px;
-      font-weight: bold;
-      color: #4aa3ff;
-      margin-bottom: 20px;
-    }
-
-    .section {
-      background: #111418;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-      border: 2px solid #1e2630;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      background: #0f1317;
-      border: 1px solid #1f2730;
-      color: white;
-      border-radius: 5px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      background: #4aa3ff;
-      border: none;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #2d8be6;
-    }
-
-    .listBox {
-      background: #0f1317;
-      padding: 15px;
-      border-radius: 5px;
-      border: 1px solid #1f2730;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-  </style>
+    <title>Admin Panel</title>
+    <style>
+        body {
+            background: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        nav {
+            background: #000;
+            padding: 10px;
+        }
+        nav a {
+            color: #fff;
+            margin-right: 15px;
+            text-decoration: none;
+        }
+        .container {
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin-top: 10px;
+            background: #222;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        button {
+            cursor: pointer;
+        }
+        #adminList div {
+            border: 1px solid #444;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        #adminList button {
+            background: darkred;
+            border: 1px solid #aa0000;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="title">Admin Panel</div>
+<nav>
+    <a href="index.html">Login</a>
+    <a href="cad.html">CAD</a>
+    <a href="mdt.html">MDT</a>
+    <a href="radio.html">Radio</a>
+    <a href="admin.html">Admin</a>
+    <a href="#" onclick="logout()">Logout</a>
+</nav>
 
-<!-- ADD OFFICER -->
-<div class="section">
-  <h2>Add Officer</h2>
+<div class="container">
+    <h1>Admin Panel</h1>
+    <div id="userInfo"></div>
 
-  <input id="badge" placeholder="Badge Number">
-  <input id="callsign" placeholder="Callsign">
-  <input id="department" placeholder="Department">
+    <h2>Add Admin</h2>
+    <input id="adminName" placeholder="Name">
+    <input id="adminBadge" placeholder="Badge / Unit ID">
+    <button onclick="addAdminUI()">Add Admin</button>
 
-  <select id="rank">
-    <option>Officer</option>
-    <option>Cadet</option>
-    <option>Recruit</option>
-    <option>Detective</option>
-    <option>Investigator</option>
-    <option>Sergeant</option>
-    <option>Lieutenant</option>
-    <option>Captain</option>
-    <option>Major</option>
-    <option>Superintendent</option>
-    <option>Colonel</option>
-  </select>
-
-  <button onclick="addOfficer()">Add Officer</button>
+    <h2>Admin List</h2>
+    <div id="adminList"></div>
 </div>
 
-<!-- ADD DISPATCH MEMBER -->
-<div class="section">
-  <h2>Add Dispatch Member</h2>
+<script>
+    // ---------------- LOGIN ENFORCEMENT ----------------
+    const rawUser = localStorage.getItem("currentUser");
+    if (!rawUser) {
+        window.location.href = "index.html";
+    }
+    const currentUser = JSON.parse(rawUser);
 
-  <input id="dBadge" placeholder="Dispatch Badge Number">
-  <input id="dName" placeholder="Dispatcher Name">
+    document.getElementById("userInfo").innerText =
+        `Logged in as: ${currentUser.name} (${currentUser.badge}) – Role: ${currentUser.role.toUpperCase()}`;
 
-  <button onclick="addDispatch()">Add Dispatcher</button>
-</div>
+    function logout() {
+        localStorage.removeItem("currentUser");
+        window.location.href = "index.html";
+    }
 
-<!-- OFFICER LIST -->
-<div class="section">
-  <h2>Officer List</h2>
-  <div id="officerList" class="listBox"></div>
-</div>
+    // ---------------- PERMANENT ADMIN STORAGE ----------------
+    function loadAdmins() {
+        const saved = localStorage.getItem("adminList");
+        if (saved) {
+            return JSON.parse(saved);
+        }
+        return []; // only empty if nothing saved yet
+    }
 
-<!-- DISPATCH LIST -->
-<div class="section">
-  <h2>Dispatch Members</h2>
-  <div id="dispatchList" class="listBox"></div>
-</div>
+    function saveAdmins(list) {
+        localStorage.setItem("adminList", JSON.stringify(list));
+    }
 
-<script src="admin.js"></script>
+    function addAdmin(name, badge) {
+        const admins = loadAdmins();
+        admins.push({ name, badge });
+        saveAdmins(admins);
+    }
+
+    function removeAdmin(badge) {
+        let admins = loadAdmins();
+        admins = admins.filter(a => a.badge !== badge);
+        saveAdmins(admins);
+    }
+
+    // ---------------- UI FUNCTIONS ----------------
+    function addAdminUI() {
+        const name = document.getElementById("adminName").value.trim();
+        const badge = document.getElementById("adminBadge").value.trim();
+
+        if (!name || !badge) {
+            alert("Enter name and badge.");
+            return;
+        }
+
+        addAdmin(name, badge);
+        renderAdmins();
+
+        document.getElementById("adminName").value = "";
+        document.getElementById("adminBadge").value = "";
+    }
+
+    function renderAdmins() {
+        const admins = loadAdmins();
+        const box = document.getElementById("adminList");
+        box.innerHTML = "";
+
+        admins.forEach(a => {
+            const div = document.createElement("div");
+            div.innerHTML = `
+                <strong>${a.name}</strong> (${a.badge})
+                <br>
+                <button onclick="removeAdmin('${a.badge}'); renderAdmins();">Remove</button>
+            `;
+            box.appendChild(div);
+        });
+    }
+
+    // INITIAL RENDER
+    renderAdmins();
+</script>
 
 </body>
 </html>
