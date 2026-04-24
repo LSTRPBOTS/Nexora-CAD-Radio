@@ -17,6 +17,14 @@
             background:#222; background-size:contain;
             background-repeat:no-repeat; background-position:center;
         }
+        .bindBtn {
+            background:#333; border:1px solid #777;
+            cursor:pointer; margin-top:10px;
+        }
+        .bindBtn.recording {
+            background:#550000;
+            border-color:#ff0000;
+        }
     </style>
 </head>
 <body>
@@ -42,10 +50,10 @@
     <div id="radioPreview"></div>
 
     <label>PTT Hotkey</label>
-    <input id="pttKey" placeholder="Example: KeyT">
+    <button id="pttBind" class="bindBtn">Click to set PTT key</button>
 
     <label>Panic Hotkey</label>
-    <input id="panicKey" placeholder="Example: KeyP">
+    <button id="panicBind" class="bindBtn">Click to set Panic key</button>
 
     <label>Frequency / Talkgroup</label>
     <input id="frequency" placeholder="Example: 154.890 or TG 101">
@@ -67,49 +75,79 @@ const rawUser = localStorage.getItem("currentUser");
 if (!rawUser) window.location.href = "index.html";
 const currentUser = JSON.parse(rawUser);
 
+let waitingForKey = null;
+
 function loadSettings() {
     const s = currentUser.settings || {};
 
     document.getElementById("radioName").value = s.radioName || "";
-    document.getElementById("pttKey").value = s.pttKey || "KeyT";
-    document.getElementById("panicKey").value = s.panicKey || "KeyP";
     document.getElementById("frequency").value = s.frequency || "154.890";
     document.getElementById("panicLabel").value = s.panicButtonLabel || "PANIC";
     document.getElementById("showTalking").value = s.showWhoIsTalking ? "true" : "false";
+
+    document.getElementById("pttBind").innerText = s.pttKey || "Click to set PTT key";
+    document.getElementById("panicBind").innerText = s.panicKey || "Click to set Panic key";
 
     if (s.radioImage) {
         document.getElementById("radioPreview").style.backgroundImage = `url('${s.radioImage}')`;
     }
 }
 
-// Placeholder: you’ll replace this with a real API call later
-async function findRadioImage() {
-    const name = document.getElementById("radioName").value.trim();
-    if (!name) {
-        alert("Type a radio name first.");
-        return;
+// KEY CAPTURE LOGIC
+document.addEventListener("keydown", (e) => {
+    if (!waitingForKey) return;
+
+    const key = e.code;
+
+    if (waitingForKey === "ptt") {
+        currentUser.settings.pttKey = key;
+        document.getElementById("pttBind").innerText = key;
+        document.getElementById("pttBind").classList.remove("recording");
     }
 
-    // For now, just pretend we found something and let you paste a URL manually.
+    if (waitingForKey === "panic") {
+        currentUser.settings.panicKey = key;
+        document.getElementById("panicBind").innerText = key;
+        document.getElementById("panicBind").classList.remove("recording");
+    }
+
+    waitingForKey = null;
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+});
+
+// BUTTONS TO START CAPTURE
+document.getElementById("pttBind").addEventListener("click", () => {
+    waitingForKey = "ptt";
+    document.getElementById("pttBind").innerText = "Press any key...";
+    document.getElementById("pttBind").classList.add("recording");
+});
+
+document.getElementById("panicBind").addEventListener("click", () => {
+    waitingForKey = "panic";
+    document.getElementById("panicBind").innerText = "Press any key...";
+    document.getElementById("panicBind").classList.add("recording");
+});
+
+// Placeholder for radio image search
+async function findRadioImage() {
+    const name = document.getElementById("radioName").value.trim();
+    if (!name) return alert("Type a radio name first.");
+
     const manual = prompt("TEMP: Paste an image URL for " + name);
     if (!manual) return;
 
-    currentUser.settings = currentUser.settings || {};
     currentUser.settings.radioName = name;
     currentUser.settings.radioImage = manual;
     localStorage.setItem("currentUser", JSON.stringify(currentUser));
 
     document.getElementById("radioPreview").style.backgroundImage = `url('${manual}')`;
-    alert("Radio image saved for this user (manual placeholder).");
+    alert("Radio image saved (manual placeholder).");
 }
 
 function saveSettings() {
-    currentUser.settings = currentUser.settings || {};
     currentUser.settings.radioName = document.getElementById("radioName").value.trim();
-    currentUser.settings.pttKey = document.getElementById("pttKey").value.trim() || "KeyT";
-    currentUser.settings.panicKey = document.getElementById("panicKey").value.trim() || "KeyP";
-    currentUser.settings.frequency = document.getElementById("frequency").value.trim() || "154.890";
-    currentUser.settings.panicButtonLabel = document.getElementById("panicLabel").value.trim() || "PANIC";
+    currentUser.settings.frequency = document.getElementById("frequency").value.trim();
+    currentUser.settings.panicButtonLabel = document.getElementById("panicLabel").value.trim();
     currentUser.settings.showWhoIsTalking = document.getElementById("showTalking").value === "true";
 
     localStorage.setItem("currentUser", JSON.stringify(currentUser));
@@ -121,4 +159,3 @@ loadSettings();
 
 </body>
 </html>
-
