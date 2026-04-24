@@ -1,92 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
-  <style>
-    body {
-      background: #0d0f12;
-      color: white;
-      font-family: Arial;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .loginBox {
-      background: #111418;
-      padding: 30px;
-      width: 350px;
-      border-radius: 10px;
-      border: 2px solid #1e2630;
-      text-align: center;
-    }
-
-    .title {
-      font-size: 26px;
-      font-weight: bold;
-      color: #4aa3ff;
-      margin-bottom: 20px;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      background: #0f1317;
-      border: 1px solid #1f2730;
-      color: white;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      background: #4aa3ff;
-      border: none;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #2d8be6;
-    }
-
-    #error {
-      margin-top: 15px;
-      color: #ff4a4a;
-      font-weight: bold;
-      min-height: 20px;
-    }
-  </style>
+    <title>Login</title>
+    <style>
+        body {
+            background: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 400px;
+            margin: 80px auto;
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        button {
+            cursor: pointer;
+        }
+        nav {
+            background: #000;
+            padding: 10px;
+        }
+        nav a {
+            color: #fff;
+            margin-right: 15px;
+            text-decoration: none;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="loginBox">
-  <div class="title">System Login</div>
+<nav>
+    <a href="login.html">Login</a>
+    <a href="cad.html">CAD</a>
+    <a href="mdt.html">MDT</a>
+    <a href="radio.html">Radio</a>
+</nav>
 
-  <input id="badge" placeholder="Enter Badge Number">
+<div class="container">
+    <h2>System Login</h2>
 
-  <select id="mode">
-    <option value="cad">CAD</option>
-    <option value="mdt">MDT</option>
-    <option value="dispatch">Dispatch</option>
-    <option value="admin">Admin</option>
-  </select>
+    <label>Display Name</label>
+    <input id="name" placeholder="John Smith">
 
-  <button onclick="login()">Login</button>
+    <label>Badge / Unit ID</label>
+    <input id="badge" placeholder="1A-12">
 
-  <div id="error"></div>
+    <label>Role / Mode</label>
+    <select id="role">
+        <option value="cad">Dispatch / CAD</option>
+        <option value="mdt">Unit / MDT</option>
+        <option value="radio">Radio Only</option>
+    </select>
+
+    <button id="loginBtn">Login</button>
 </div>
 
-<script src="login.js"></script>
+<script>
+    document.getElementById("loginBtn").addEventListener("click", () => {
+        const name = document.getElementById("name").value.trim();
+        const badge = document.getElementById("badge").value.trim();
+        const role = document.getElementById("role").value;
+
+        if (!name || !badge) {
+            alert("Enter name and badge/unit ID.");
+            return;
+        }
+
+        const user = { name, badge, role };
+        localStorage.setItem("currentUser", JSON.stringify(user));
+
+        if (role === "cad") {
+            window.location.href = "cad.html";
+        } else if (role === "mdt") {
+            window.location.href = "mdt.html";
+        } else if (role === "radio") {
+            window.location.href = "radio.html";
+        }
+    });
+</script>
 
 </body>
 </html>
