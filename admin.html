@@ -3,45 +3,22 @@
 <head>
     <title>Admin Panel</title>
     <style>
-        body {
-            background: #111;
-            color: #fff;
-            font-family: Arial, sans-serif;
-        }
-        nav {
-            background: #000;
-            padding: 10px;
-        }
-        nav a {
-            color: #fff;
-            margin-right: 15px;
-            text-decoration: none;
-        }
-        .container {
-            padding: 20px;
-        }
+        body { background:#111; color:#fff; font-family:Arial; }
+        nav { background:#000; padding:10px; }
+        nav a { color:#fff; margin-right:15px; text-decoration:none; }
+        .container { padding:20px; }
         input, button {
-            padding: 10px;
-            margin-top: 10px;
-            background: #222;
-            color: #fff;
-            border: 1px solid #555;
+            padding:10px; margin-top:10px;
+            background:#222; color:#fff; border:1px solid #555;
         }
-        button {
-            cursor: pointer;
-        }
+        button { cursor:pointer; }
         .listBox div {
-            border: 1px solid #444;
-            padding: 10px;
-            margin-top: 10px;
+            border:1px solid #444; padding:10px; margin-top:10px;
         }
         .listBox button {
-            background: darkred;
-            border: 1px solid #aa0000;
+            background:darkred; border:1px solid #aa0000;
         }
-        h2 {
-            margin-top: 40px;
-        }
+        h2 { margin-top:40px; }
     </style>
 </head>
 <body>
@@ -52,6 +29,7 @@
     <a href="mdt.html">MDT</a>
     <a href="radio.html">Radio</a>
     <a href="admin.html">Admin</a>
+    <a href="settings.html">Settings</a>
     <a href="#" onclick="logout()">Logout</a>
 </nav>
 
@@ -88,11 +66,9 @@
 </div>
 
 <script>
-    // ---------------- LOGIN ENFORCEMENT ----------------
+    // LOGIN ENFORCEMENT
     const rawUser = localStorage.getItem("currentUser");
-    if (!rawUser) {
-        window.location.href = "index.html";
-    }
+    if (!rawUser) window.location.href = "index.html";
     const currentUser = JSON.parse(rawUser);
 
     document.getElementById("userInfo").innerText =
@@ -103,18 +79,17 @@
         window.location.href = "index.html";
     }
 
-    // ---------------- PERMANENT STORAGE SYSTEM ----------------
+    // PERMANENT STORAGE
     function loadList(key) {
         const saved = localStorage.getItem(key);
-        if (saved) return JSON.parse(saved);
-        return [];
+        return saved ? JSON.parse(saved) : [];
     }
 
     function saveList(key, list) {
         localStorage.setItem(key, JSON.stringify(list));
     }
 
-    // ---------------- ADMIN FUNCTIONS ----------------
+    // ADMINS
     function addAdmin(name, badge) {
         const list = loadList("adminList");
         list.push({ name, badge });
@@ -128,34 +103,29 @@
     }
 
     function addAdminUI() {
-        const name = document.getElementById("adminName").value.trim();
-        const badge = document.getElementById("adminBadge").value.trim();
+        const name = adminName.value.trim();
+        const badge = adminBadge.value.trim();
         if (!name || !badge) return alert("Enter name and badge.");
-
         addAdmin(name, badge);
         renderAdmins();
-
-        document.getElementById("adminName").value = "";
-        document.getElementById("adminBadge").value = "";
+        adminName.value = "";
+        adminBadge.value = "";
     }
 
     function renderAdmins() {
         const list = loadList("adminList");
-        const box = document.getElementById("adminList");
-        box.innerHTML = "";
-
+        adminList.innerHTML = "";
         list.forEach(a => {
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <strong>${a.name}</strong> (${a.badge})
-                <br>
-                <button onclick="removeAdmin('${a.badge}'); renderAdmins();">Remove</button>
-            `;
-            box.appendChild(div);
+            adminList.innerHTML += `
+                <div>
+                    <strong>${a.name}</strong> (${a.badge})
+                    <br>
+                    <button onclick="removeAdmin('${a.badge}'); renderAdmins();">Remove</button>
+                </div>`;
         });
     }
 
-    // ---------------- UNIT FUNCTIONS ----------------
+    // UNITS
     function addUnit(name, badge) {
         const list = loadList("unitList");
         list.push({ name, badge });
@@ -169,34 +139,29 @@
     }
 
     function addUnitUI() {
-        const name = document.getElementById("unitName").value.trim();
-        const badge = document.getElementById("unitBadge").value.trim();
+        const name = unitName.value.trim();
+        const badge = unitBadge.value.trim();
         if (!name || !badge) return alert("Enter name and unit ID.");
-
         addUnit(name, badge);
         renderUnits();
-
-        document.getElementById("unitName").value = "";
-        document.getElementById("unitBadge").value = "";
+        unitName.value = "";
+        unitBadge.value = "";
     }
 
     function renderUnits() {
         const list = loadList("unitList");
-        const box = document.getElementById("unitList");
-        box.innerHTML = "";
-
+        unitList.innerHTML = "";
         list.forEach(u => {
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <strong>${u.name}</strong> (${u.badge})
-                <br>
-                <button onclick="removeUnit('${u.badge}'); renderUnits();">Remove</button>
-            `;
-            box.appendChild(div);
+            unitList.innerHTML += `
+                <div>
+                    <strong>${u.name}</strong> (${u.badge})
+                    <br>
+                    <button onclick="removeUnit('${u.badge}'); renderUnits();">Remove</button>
+                </div>`;
         });
     }
 
-    // ---------------- DISPATCHER FUNCTIONS ----------------
+    // DISPATCHERS
     function addDispatcher(name, badge) {
         const list = loadList("dispatcherList");
         list.push({ name, badge });
@@ -210,34 +175,29 @@
     }
 
     function addDispatcherUI() {
-        const name = document.getElementById("dispName").value.trim();
-        const badge = document.getElementById("dispBadge").value.trim();
+        const name = dispName.value.trim();
+        const badge = dispBadge.value.trim();
         if (!name || !badge) return alert("Enter dispatcher name and ID.");
-
         addDispatcher(name, badge);
         renderDispatchers();
-
-        document.getElementById("dispName").value = "";
-        document.getElementById("dispBadge").value = "";
+        dispName.value = "";
+        dispBadge.value = "";
     }
 
     function renderDispatchers() {
         const list = loadList("dispatcherList");
-        const box = document.getElementById("dispatcherList");
-        box.innerHTML = "";
-
+        dispatcherList.innerHTML = "";
         list.forEach(d => {
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <strong>${d.name}</strong> (${d.badge})
-                <br>
-                <button onclick="removeDispatcher('${d.badge}'); renderDispatchers();">Remove</button>
-            `;
-            box.appendChild(div);
+            dispatcherList.innerHTML += `
+                <div>
+                    <strong>${d.name}</strong> (${d.badge})
+                    <br>
+                    <button onclick="removeDispatcher('${d.badge}'); renderDispatchers();">Remove</button>
+                </div>`;
         });
     }
 
-    // ---------------- INITIAL RENDER ----------------
+    // INITIAL RENDER
     renderAdmins();
     renderUnits();
     renderDispatchers();
