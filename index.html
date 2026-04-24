@@ -59,16 +59,18 @@ document.getElementById("loginBtn").addEventListener("click", () => {
         return;
     }
 
-    // PER-USER SETTINGS
     const user = {
         name,
         badge,
         role,
         settings: {
+            radioName: "",
+            radioImage: "",
             pttKey: "KeyT",
             panicKey: "KeyP",
             frequency: "154.890",
-            panicButtonLabel: "PANIC"
+            panicButtonLabel: "PANIC",
+            showWhoIsTalking: true
         }
     };
 
