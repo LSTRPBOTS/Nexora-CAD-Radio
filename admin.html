@@ -37,7 +37,6 @@
     <h1>Admin Panel</h1>
     <div id="userInfo"></div>
 
-    <!-- ADD ADMIN -->
     <h2>Add Admin</h2>
     <input id="adminName" placeholder="Name">
     <input id="adminBadge" placeholder="Badge / Unit ID">
@@ -46,7 +45,6 @@
     <h3>Admin List</h3>
     <div id="adminList" class="listBox"></div>
 
-    <!-- ADD UNIT -->
     <h2>Add Unit (CAD/MDT)</h2>
     <input id="unitName" placeholder="Officer Name">
     <input id="unitBadge" placeholder="Unit ID (1A-12)">
@@ -55,7 +53,6 @@
     <h3>Unit List</h3>
     <div id="unitList" class="listBox"></div>
 
-    <!-- ADD DISPATCHER -->
     <h2>Add Dispatcher</h2>
     <input id="dispName" placeholder="Dispatcher Name">
     <input id="dispBadge" placeholder="Dispatcher ID">
@@ -66,141 +63,129 @@
 </div>
 
 <script>
-    // LOGIN ENFORCEMENT
-    const rawUser = localStorage.getItem("currentUser");
-    if (!rawUser) window.location.href = "index.html";
-    const currentUser = JSON.parse(rawUser);
+const rawUser = localStorage.getItem("currentUser");
+if (!rawUser) window.location.href = "index.html";
+const currentUser = JSON.parse(rawUser);
 
-    document.getElementById("userInfo").innerText =
-        `Logged in as: ${currentUser.name} (${currentUser.badge}) – Role: ${currentUser.role.toUpperCase()}`;
+document.getElementById("userInfo").innerText =
+    `Logged in as: ${currentUser.name} (${currentUser.badge}) – Role: ${currentUser.role.toUpperCase()}`;
 
-    function logout() {
-        localStorage.removeItem("currentUser");
-        window.location.href = "index.html";
-    }
+function logout() {
+    localStorage.removeItem("currentUser");
+    window.location.href = "index.html";
+}
 
-    // PERMANENT STORAGE
-    function loadList(key) {
-        const saved = localStorage.getItem(key);
-        return saved ? JSON.parse(saved) : [];
-    }
+function loadList(key) {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : [];
+}
 
-    function saveList(key, list) {
-        localStorage.setItem(key, JSON.stringify(list));
-    }
+function saveList(key, list) {
+    localStorage.setItem(key, JSON.stringify(list));
+}
 
-    // ADMINS
-    function addAdmin(name, badge) {
-        const list = loadList("adminList");
-        list.push({ name, badge });
-        saveList("adminList", list);
-    }
-
-    function removeAdmin(badge) {
-        let list = loadList("adminList");
-        list = list.filter(a => a.badge !== badge);
-        saveList("adminList", list);
-    }
-
-    function addAdminUI() {
-        const name = adminName.value.trim();
-        const badge = adminBadge.value.trim();
-        if (!name || !badge) return alert("Enter name and badge.");
-        addAdmin(name, badge);
-        renderAdmins();
-        adminName.value = "";
-        adminBadge.value = "";
-    }
-
-    function renderAdmins() {
-        const list = loadList("adminList");
-        adminList.innerHTML = "";
-        list.forEach(a => {
-            adminList.innerHTML += `
-                <div>
-                    <strong>${a.name}</strong> (${a.badge})
-                    <br>
-                    <button onclick="removeAdmin('${a.badge}'); renderAdmins();">Remove</button>
-                </div>`;
-        });
-    }
-
-    // UNITS
-    function addUnit(name, badge) {
-        const list = loadList("unitList");
-        list.push({ name, badge });
-        saveList("unitList", list);
-    }
-
-    function removeUnit(badge) {
-        let list = loadList("unitList");
-        list = list.filter(u => u.badge !== badge);
-        saveList("unitList", list);
-    }
-
-    function addUnitUI() {
-        const name = unitName.value.trim();
-        const badge = unitBadge.value.trim();
-        if (!name || !badge) return alert("Enter name and unit ID.");
-        addUnit(name, badge);
-        renderUnits();
-        unitName.value = "";
-        unitBadge.value = "";
-    }
-
-    function renderUnits() {
-        const list = loadList("unitList");
-        unitList.innerHTML = "";
-        list.forEach(u => {
-            unitList.innerHTML += `
-                <div>
-                    <strong>${u.name}</strong> (${u.badge})
-                    <br>
-                    <button onclick="removeUnit('${u.badge}'); renderUnits();">Remove</button>
-                </div>`;
-        });
-    }
-
-    // DISPATCHERS
-    function addDispatcher(name, badge) {
-        const list = loadList("dispatcherList");
-        list.push({ name, badge });
-        saveList("dispatcherList", list);
-    }
-
-    function removeDispatcher(badge) {
-        let list = loadList("dispatcherList");
-        list = list.filter(d => d.badge !== badge);
-        saveList("dispatcherList", list);
-    }
-
-    function addDispatcherUI() {
-        const name = dispName.value.trim();
-        const badge = dispBadge.value.trim();
-        if (!name || !badge) return alert("Enter dispatcher name and ID.");
-        addDispatcher(name, badge);
-        renderDispatchers();
-        dispName.value = "";
-        dispBadge.value = "";
-    }
-
-    function renderDispatchers() {
-        const list = loadList("dispatcherList");
-        dispatcherList.innerHTML = "";
-        list.forEach(d => {
-            dispatcherList.innerHTML += `
-                <div>
-                    <strong>${d.name}</strong> (${d.badge})
-                    <br>
-                    <button onclick="removeDispatcher('${d.badge}'); renderDispatchers();">Remove</button>
-                </div>`;
-        });
-    }
-
-    // INITIAL RENDER
+// Admins
+function addAdmin(name, badge) {
+    const list = loadList("adminList");
+    list.push({ name, badge });
+    saveList("adminList", list);
+}
+function removeAdmin(badge) {
+    let list = loadList("adminList");
+    list = list.filter(a => a.badge !== badge);
+    saveList("adminList", list);
+}
+function addAdminUI() {
+    const name = adminName.value.trim();
+    const badge = adminBadge.value.trim();
+    if (!name || !badge) return alert("Enter name and badge.");
+    addAdmin(name, badge);
     renderAdmins();
+    adminName.value = "";
+    adminBadge.value = "";
+}
+function renderAdmins() {
+    const list = loadList("adminList");
+    adminList.innerHTML = "";
+    list.forEach(a => {
+        adminList.innerHTML += `
+            <div>
+                <strong>${a.name}</strong> (${a.badge})
+                <br>
+                <button onclick="removeAdmin('${a.badge}'); renderAdmins();">Remove</button>
+            </div>`;
+    });
+}
+
+// Units
+function addUnit(name, badge) {
+    const list = loadList("unitList");
+    list.push({ name, badge });
+    saveList("unitList", list);
+}
+function removeUnit(badge) {
+    let list = loadList("unitList");
+    list = list.filter(u => u.badge !== badge);
+    saveList("unitList", list);
+}
+function addUnitUI() {
+    const name = unitName.value.trim();
+    const badge = unitBadge.value.trim();
+    if (!name || !badge) return alert("Enter name and unit ID.");
+    addUnit(name, badge);
     renderUnits();
+    unitName.value = "";
+    unitBadge.value = "";
+}
+function renderUnits() {
+    const list = loadList("unitList");
+    unitList.innerHTML = "";
+    list.forEach(u => {
+        unitList.innerHTML += `
+            <div>
+                <strong>${u.name}</strong> (${u.badge})
+                <br>
+                <button onclick="removeUnit('${u.badge}'); renderUnits();">Remove</button>
+            </div>`;
+    });
+}
+
+// Dispatchers
+function addDispatcher(name, badge) {
+    const list = loadList("dispatcherList");
+    list.push({ name, badge });
+    saveList("dispatcherList", list);
+}
+function removeDispatcher(badge) {
+    let list = loadList("dispatcherList");
+    list = list.filter(d => d.badge !== badge);
+    saveList("dispatcherList", list);
+}
+function addDispatcherUI() {
+    const name = dispName.value.trim();
+    const badge = dispBadge.value.trim();
+    if (!name || !badge) return alert("Enter dispatcher name and ID.");
+    addDispatcher(name, badge);
     renderDispatchers();
+    dispName.value = "";
+    dispBadge.value = "";
+}
+function renderDispatchers() {
+    const list = loadList("dispatcherList");
+    dispatcherList.innerHTML = "";
+    list.forEach(d => {
+        dispatcherList.innerHTML += `
+            <div>
+                <strong>${d.name}</strong> (${d.badge})
+                <br>
+                <button onclick="removeDispatcher('${d.badge}'); renderDispatchers();">Remove</button>
+            </div>`;
+    });
+}
+
+renderAdmins();
+renderUnits();
+renderDispatchers();
 </script>
 
 </body>
