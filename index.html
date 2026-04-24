@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>System Login</title>
     <style>
         body {
             background: #111;
             color: #fff;
             font-family: Arial, sans-serif;
+        }
+        nav {
+            background: #000;
+            padding: 10px;
+        }
+        nav a {
+            color: #fff;
+            margin-right: 15px;
+            text-decoration: none;
         }
         .container {
             max-width: 400px;
@@ -26,24 +35,16 @@
         button {
             cursor: pointer;
         }
-        nav {
-            background: #000;
-            padding: 10px;
-        }
-        nav a {
-            color: #fff;
-            margin-right: 15px;
-            text-decoration: none;
-        }
     </style>
 </head>
 <body>
 
 <nav>
-    <a href="login.html">Login</a>
+    <a href="index.html">Login</a>
     <a href="cad.html">CAD</a>
     <a href="mdt.html">MDT</a>
     <a href="radio.html">Radio</a>
+    <a href="admin.html">Admin</a>
 </nav>
 
 <div class="container">
@@ -60,6 +61,7 @@
         <option value="cad">Dispatch / CAD</option>
         <option value="mdt">Unit / MDT</option>
         <option value="radio">Radio Only</option>
+        <option value="admin">Admin Panel</option>
     </select>
 
     <button id="loginBtn">Login</button>
@@ -77,15 +79,15 @@
         }
 
         const user = { name, badge, role };
+
+        // SAVE LOGIN PERMANENTLY
         localStorage.setItem("currentUser", JSON.stringify(user));
 
-        if (role === "cad") {
-            window.location.href = "cad.html";
-        } else if (role === "mdt") {
-            window.location.href = "mdt.html";
-        } else if (role === "radio") {
-            window.location.href = "radio.html";
-        }
+        // REDIRECT TO CORRECT PAGE
+        if (role === "cad") window.location.href = "cad.html";
+        if (role === "mdt") window.location.href = "mdt.html";
+        if (role === "radio") window.location.href = "radio.html";
+        if (role === "admin") window.location.href = "admin.html";
     });
 </script>
 
