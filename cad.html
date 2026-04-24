@@ -3,203 +3,200 @@
 <head>
     <title>CAD</title>
     <style>
-        body {
-            background: #111;
-            color: #fff;
-            font-family: Arial, sans-serif;
-        }
-        nav {
-            background: #000;
-            padding: 10px;
-        }
-        nav a {
-            color: #fff;
-            margin-right: 15px;
-            text-decoration: none;
-        }
-        .container {
-            padding: 20px;
+        body { background:#111; color:#fff; font-family:Arial; }
+        nav { background:#000; padding:10px; }
+        nav a { color:#fff; margin-right:15px; text-decoration:none; }
+        .container { padding:20px; display:flex; gap:20px; }
+        .panel {
+            flex:1; background:#222; padding:15px;
+            border-radius:6px; border:1px solid #333;
         }
         input, select, button, textarea {
-            padding: 8px;
-            margin-top: 8px;
-            background: #222;
-            color: #fff;
-            border: 1px solid #555;
-            width: 100%;
+            width:100%; padding:8px; margin-top:8px;
+            background:#333; color:#fff; border:1px solid #555;
         }
-        button {
-            cursor: pointer;
-        }
-        #calls {
-            margin-top: 20px;
-            border-top: 1px solid #444;
-            padding-top: 10px;
-        }
+        button { cursor:pointer; }
         .call {
-            border: 1px solid #444;
-            padding: 8px;
-            margin-top: 8px;
+            border:1px solid #444; padding:8px; margin-top:8px;
+            background:#181818;
         }
-        #panicBanner {
-            background: darkred;
-            padding: 10px;
-            margin-top: 10px;
-            display: none;
-            font-weight: bold;
+        .call button {
+            width:auto; margin-right:5px; margin-top:5px;
         }
+        h2 { margin-top:0; }
     </style>
 </head>
 <body>
 
 <nav>
-    <a href="login.html">Login</a>
+    <a href="index.html">Login</a>
     <a href="cad.html">CAD</a>
     <a href="mdt.html">MDT</a>
     <a href="radio.html">Radio</a>
+    <a href="admin.html">Admin</a>
+    <a href="settings.html">Settings</a>
 </nav>
 
 <div class="container">
-    <h1>CAD – Dispatch Console</h1>
-    <div id="userInfo"></div>
+    <div class="panel">
+        <h2>Create Call</h2>
+        <label>Call Type</label>
+        <input id="callType" placeholder="Robbery, Traffic Stop, etc.">
 
-    <h3>Create Call</h3>
-    <input id="callType" placeholder="Call Type (Robbery, MVC, Fire, etc.)">
-    <input id="callLocation" placeholder="Location">
-    <textarea id="callDetails" placeholder="Details"></textarea>
+        <label>Location</label>
+        <input id="callLocation" placeholder="123 Main St">
 
-    <label>Severity</label>
-    <select id="callSeverity">
-        <option value="normal">Normal</option>
-        <option value="high">High Priority</option>
-    </select>
+        <label>Description</label>
+        <textarea id="callDesc" rows="3" placeholder="Details..."></textarea>
 
-    <button id="createCallBtn">Create Call</button>
+        <button onclick="createCall()">Create Call</button>
+    </div>
 
-    <div id="panicBanner"></div>
-
-    <div id="calls">
-        <h3>Active Calls</h3>
+    <div class="panel">
+        <h2>Active Calls</h2>
         <div id="callList"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Units</h2>
+        <div id="unitList"></div>
     </div>
 </div>
 
 <script>
-    // ---------------- TTS + BEEPS ----------------
-    function playKeyUp() {
-        new Audio("/tones/unit_keyup.mp3").play();
+const rawUser = localStorage.getItem("currentUser");
+if (!rawUser) window.location.href = "index.html";
+const currentUser = JSON.parse(rawUser);
+
+// ---- CALL STORAGE (SHARED WITH MDT) ----
+let calls = JSON.parse(localStorage.getItem("calls")) || [];
+
+function saveCalls() {
+    localStorage.setItem("calls", JSON.stringify(calls));
+}
+
+// ---- UNITS (FROM ADMIN) ----
+function loadUnits() {
+    return JSON.parse(localStorage.getItem("unitList")) || [];
+}
+
+function renderUnits() {
+    const units = loadUnits();
+    const box = document.getElementById("unitList");
+    box.innerHTML = "";
+    if (!units.length) {
+        box.innerHTML = "<em>No units configured in Admin.</em>";
+        return;
     }
-
-    function playUnkey() {
-        new Audio("/tones/unit_unkey.mp3").play();
-    }
-
-    function speak(text, severity = "normal") {
-        const msg = new SpeechSynthesisUtterance(text);
-        const voices = speechSynthesis.getVoices();
-        const maleVoice = voices.find(v => v.name.toLowerCase().includes("male")) || voices[0];
-        msg.voice = maleVoice;
-
-        if (severity === "high") {
-            msg.rate = 1.2;
-            msg.pitch = 0.9;
-            msg.volume = 1;
-        } else {
-            msg.rate = 0.9;
-            msg.pitch = 0.8;
-            msg.volume = 0.9;
-        }
-
-        speechSynthesis.speak(msg);
-    }
-
-    function dispatchCallAudio(call) {
-        playKeyUp();
-
-        setTimeout(() => {
-            const message = call.severity === "high"
-                ? `ATTENTION ALL UNITS! ${call.type.toUpperCase()} at ${call.location.toUpperCase()}.`
-                : `Attention all units, ${call.type} at ${call.location}.`;
-
-            speak(message, call.severity);
-
-            const duration = message.length * 50;
-            setTimeout(() => {
-                playUnkey();
-            }, duration);
-
-        }, 300);
-    }
-
-    // ---------------- USER INFO ----------------
-    function loadUser() {
-        const raw = localStorage.getItem("currentUser");
-        if (!raw) return;
-        const user = JSON.parse(raw);
-        document.getElementById("userInfo").innerText =
-            `Logged in as: ${user.name} (${user.badge}) – Role: ${user.role.toUpperCase()}`;
-    }
-    loadUser();
-
-    // ---------------- CREATE CALL ----------------
-    document.getElementById("createCallBtn").addEventListener("click", () => {
-        const type = document.getElementById("callType").value.trim();
-        const location = document.getElementById("callLocation").value.trim();
-        const details = document.getElementById("callDetails").value.trim();
-        const severity = document.getElementById("callSeverity").value;
-
-        if (!type || !location) {
-            alert("Type and location required.");
-            return;
-        }
-
-        const call = {
-            id: Date.now(),
-            type,
-            location,
-            details,
-            severity,
-            timestamp: new Date().toLocaleString()
-        };
-
-        localStorage.setItem("newCall", JSON.stringify(call));
-        addCallToList(call);
-        dispatchCallAudio(call);
+    units.forEach(u => {
+        const div = document.createElement("div");
+        div.textContent = `${u.badge} – ${u.name}`;
+        box.appendChild(div);
     });
+}
 
-    function addCallToList(call) {
-        const list = document.getElementById("callList");
+// ---- CALL CREATION ----
+function createCall() {
+    const type = document.getElementById("callType").value.trim();
+    const loc = document.getElementById("callLocation").value.trim();
+    const desc = document.getElementById("callDesc").value.trim();
+
+    if (!type || !loc) {
+        alert("Type and Location are required.");
+        return;
+    }
+
+    const call = {
+        id: Date.now(),
+        type,
+        location: loc,
+        description: desc,
+        status: "Pending",
+        units: []
+    };
+
+    calls.push(call);
+    saveCalls();
+    renderCalls();
+
+    document.getElementById("callType").value = "";
+    document.getElementById("callLocation").value = "";
+    document.getElementById("callDesc").value = "";
+}
+
+// ---- CALL RENDERING ----
+function renderCalls() {
+    const box = document.getElementById("callList");
+    box.innerHTML = "";
+
+    if (!calls.length) {
+        box.innerHTML = "<em>No active calls.</em>";
+        return;
+    }
+
+    const units = loadUnits();
+
+    calls.forEach(call => {
         const div = document.createElement("div");
         div.className = "call";
+
+        const unitOptions = units.map(u => `<option value="${u.badge}">${u.badge} – ${u.name}</option>`).join("");
+
         div.innerHTML = `
-            <strong>${call.type}</strong><br>
-            ${call.location}<br>
-            ${call.details}<br>
-            <small>${call.timestamp} – Severity: ${call.severity}</small>
+            <strong>Call #${call.id}</strong><br>
+            Type: ${call.type}<br>
+            Location: ${call.location}<br>
+            Status: ${call.status}<br>
+            Units: ${call.units.join(", ") || "None"}<br><br>
+
+            <label>Assign Unit</label>
+            <select data-callid="${call.id}" class="unitSelect">
+                <option value="">Select unit...</option>
+                ${unitOptions}
+            </select>
+            <button onclick="assignUnit(${call.id})">Assign</button>
+            <button onclick="setStatus(${call.id}, 'En Route')">En Route</button>
+            <button onclick="setStatus(${call.id}, 'On Scene')">On Scene</button>
+            <button onclick="setStatus(${call.id}, 'Closed')">Close</button>
         `;
-        list.prepend(div);
-    }
 
-    // ---------------- PANIC HANDLING ----------------
-    function showPanic(panic) {
-        const banner = document.getElementById("panicBanner");
-        banner.style.display = "block";
-        banner.innerText = `PANIC BUTTON ACTIVATED BY ${panic.badge} (${panic.name}) – ${panic.location || "Unknown location"}`;
+        box.appendChild(div);
+    });
+}
 
-        playKeyUp();
-        setTimeout(() => {
-            speak(`Panic button activated by ${panic.badge}.`, "high");
-            const duration = 2000;
-            setTimeout(() => playUnkey(), duration);
-        }, 300);
-    }
+function findCall(id) {
+    return calls.find(c => c.id === id);
+}
 
-    window.addEventListener("storage", (e) => {
-        if (e.key === "panicEvent") {
-            const panic = JSON.parse(e.newValue);
-            showPanic(panic);
+function assignUnit(callId) {
+    const selects = document.querySelectorAll(".unitSelect");
+    let selectedBadge = "";
+    selects.forEach(sel => {
+        if (Number(sel.getAttribute("data-callid")) === callId) {
+            selectedBadge = sel.value;
         }
     });
+    if (!selectedBadge) return;
+
+    const call = findCall(callId);
+    if (!call.units.includes(selectedBadge)) {
+        call.units.push(selectedBadge);
+        saveCalls();
+        renderCalls();
+    }
+}
+
+function setStatus(callId, status) {
+    const call = findCall(callId);
+    if (!call) return;
+    call.status = status;
+    saveCalls();
+    renderCalls();
+}
+
+// INITIAL
+renderUnits();
+renderCalls();
 </script>
 
 </body>
