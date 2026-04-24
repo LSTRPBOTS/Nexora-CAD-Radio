@@ -3,165 +3,137 @@
 <head>
     <title>MDT</title>
     <style>
-        body {
-            background: #111;
-            color: #fff;
-            font-family: Arial, sans-serif;
+        body { background:#111; color:#fff; font-family:Arial; }
+        nav { background:#000; padding:10px; }
+        nav a { color:#fff; margin-right:15px; text-decoration:none; }
+        .container { padding:20px; display:flex; gap:20px; }
+        .panel {
+            flex:1; background:#222; padding:15px;
+            border-radius:6px; border:1px solid #333;
         }
-        nav {
-            background: #000;
-            padding: 10px;
+        .call {
+            border:1px solid #444; padding:8px; margin-top:8px;
+            background:#181818;
         }
-        nav a {
-            color: #fff;
-            margin-right: 15px;
-            text-decoration: none;
+        button, select {
+            padding:6px; margin-top:6px;
+            background:#333; color:#fff; border:1px solid #555;
+            cursor:pointer;
         }
-        .container {
-            padding: 20px;
-        }
-        #calls .call {
-            border: 1px solid #444;
-            padding: 8px;
-            margin-top: 8px;
-        }
-        button {
-            padding: 6px 10px;
-            margin-right: 5px;
-            margin-top: 5px;
-            background: #222;
-            color: #fff;
-            border: 1px solid #555;
-            cursor: pointer;
-        }
-        #panicBtn {
-            background: darkred;
-        }
+        h2 { margin-top:0; }
     </style>
 </head>
 <body>
 
 <nav>
-    <a href="login.html">Login</a>
+    <a href="index.html">Login</a>
     <a href="cad.html">CAD</a>
     <a href="mdt.html">MDT</a>
     <a href="radio.html">Radio</a>
+    <a href="admin.html">Admin</a>
+    <a href="settings.html">Settings</a>
 </nav>
 
 <div class="container">
-    <h1>MDT – Unit Terminal</h1>
-    <div id="userInfo"></div>
+    <div class="panel">
+        <h2>Unit Info</h2>
+        <div id="unitInfo"></div>
+    </div>
 
-    <button id="panicBtn">PANIC</button>
+    <div class="panel">
+        <h2>Assigned Calls</h2>
+        <div id="assignedCalls"></div>
+    </div>
 
-    <div id="calls">
-        <h3>Assigned / Active Calls</h3>
-        <div id="callList"></div>
+    <div class="panel">
+        <h2>All Calls</h2>
+        <div id="allCalls"></div>
     </div>
 </div>
 
 <script>
-    // ------------- TTS + BEEPS -------------
-    function playKeyUp() {
-        new Audio("/tones/unit_keyup.mp3").play();
+const rawUser = localStorage.getItem("currentUser");
+if (!rawUser) window.location.href = "index.html";
+const currentUser = JSON.parse(rawUser);
+
+document.getElementById("unitInfo").innerText =
+    `Logged in as: ${currentUser.name} (${currentUser.badge})`;
+
+function loadCalls() {
+    return JSON.parse(localStorage.getItem("calls")) || [];
+}
+
+function renderMDT() {
+    const calls = loadCalls();
+    const myBadge = currentUser.badge;
+
+    const assignedBox = document.getElementById("assignedCalls");
+    const allBox = document.getElementById("allCalls");
+
+    assignedBox.innerHTML = "";
+    allBox.innerHTML = "";
+
+    if (!calls.length) {
+        assignedBox.innerHTML = "<em>No calls.</em>";
+        allBox.innerHTML = "<em>No calls.</em>";
+        return;
     }
 
-    function playUnkey() {
-        new Audio("/tones/unit_unkey.mp3").play();
-    }
-
-    function speak(text, severity = "normal") {
-        const msg = new SpeechSynthesisUtterance(text);
-        const voices = speechSynthesis.getVoices();
-        const maleVoice = voices.find(v => v.name.toLowerCase().includes("male")) || voices[0];
-        msg.voice = maleVoice;
-
-        if (severity === "high") {
-            msg.rate = 1.2;
-            msg.pitch = 0.9;
-            msg.volume = 1;
-        } else {
-            msg.rate = 0.9;
-            msg.pitch = 0.8;
-            msg.volume = 0.9;
-        }
-
-        speechSynthesis.speak(msg);
-    }
-
-    // ------------- USER INFO -------------
-    let currentUser = null;
-    function loadUser() {
-        const raw = localStorage.getItem("currentUser");
-        if (!raw) return;
-        currentUser = JSON.parse(raw);
-        document.getElementById("userInfo").innerText =
-            `Logged in as: ${currentUser.name} (${currentUser.badge}) – Role: ${currentUser.role.toUpperCase()}`;
-    }
-    loadUser();
-
-    // ------------- CALL HANDLING -------------
-    function addCallToMDT(call) {
-        const list = document.getElementById("callList");
-        const div = document.createElement("div");
-        div.className = "call";
-        div.innerHTML = `
-            <strong>${call.type}</strong><br>
-            ${call.location}<br>
-            ${call.details || ""}<br>
-            <small>${call.timestamp} – Severity: ${call.severity}</small><br>
-            <button onclick="setStatus(this, 'En Route')">En Route</button>
-            <button onclick="setStatus(this, 'On Scene')">On Scene</button>
-            <button onclick="setStatus(this, 'Clear')">Clear</button>
-            <span class="statusLabel"></span>
+    calls.forEach(call => {
+        const block = document.createElement("div");
+        block.className = "call";
+        block.innerHTML = `
+            <strong>Call #${call.id}</strong><br>
+            Type: ${call.type}<br>
+            Location: ${call.location}<br>
+            Status: ${call.status}<br>
+            Units: ${call.units.join(", ") || "None"}<br>
         `;
-        list.prepend(div);
 
-        playKeyUp();
-        setTimeout(() => {
-            speak(`New call: ${call.type} at ${call.location}.`, call.severity);
-            const duration = 2000;
-            setTimeout(() => playUnkey(), duration);
-        }, 300);
-    }
+        const isMine = call.units.includes(myBadge);
 
-    function setStatus(btn, status) {
-        const parent = btn.parentElement;
-        const label = parent.querySelector(".statusLabel");
-        label.innerText = `Status: ${status}`;
-    }
+        if (isMine) {
+            const myBlock = block.cloneNode(true);
 
-    window.addEventListener("storage", (e) => {
-        if (e.key === "newCall") {
-            const call = JSON.parse(e.newValue);
-            addCallToMDT(call);
+            // Status controls for THIS unit’s MDT
+            const statusSelect = document.createElement("select");
+            ["Pending","En Route","On Scene","Closed"].forEach(st => {
+                const opt = document.createElement("option");
+                opt.value = st;
+                opt.textContent = st;
+                if (call.status === st) opt.selected = true;
+                statusSelect.appendChild(opt);
+            });
+
+            const btn = document.createElement("button");
+            btn.textContent = "Update Status";
+            btn.onclick = () => {
+                updateCallStatus(call.id, statusSelect.value);
+            };
+
+            myBlock.appendChild(document.createElement("br"));
+            myBlock.appendChild(statusSelect);
+            myBlock.appendChild(btn);
+
+            assignedBox.appendChild(myBlock);
         }
+
+        allBox.appendChild(block);
     });
+}
 
-    // ------------- PANIC BUTTON -------------
-    document.getElementById("panicBtn").addEventListener("click", () => {
-        if (!currentUser) {
-            alert("No user logged in.");
-            return;
-        }
+function updateCallStatus(callId, status) {
+    const calls = loadCalls();
+    const idx = calls.findIndex(c => c.id === callId);
+    if (idx === -1) return;
+    calls[idx].status = status;
+    localStorage.setItem("calls", JSON.stringify(calls));
+    renderMDT();
+}
 
-        const panic = {
-            name: currentUser.name,
-            badge: currentUser.badge,
-            role: currentUser.role,
-            timestamp: new Date().toLocaleString(),
-            location: "Unknown" // you can wire GPS or manual later
-        };
-
-        localStorage.setItem("panicEvent", JSON.stringify(panic));
-
-        playKeyUp();
-        setTimeout(() => {
-            speak("Panic button activated.", "high");
-            const duration = 2000;
-            setTimeout(() => playUnkey(), duration);
-        }, 300);
-    });
+// Poll every 2 seconds so MDT sees CAD changes
+setInterval(renderMDT, 2000);
+renderMDT();
 </script>
 
 </body>
