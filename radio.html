@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Radio</title>
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        #radioAlert {
+            background: red;
+            padding: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+        }
+
+        #ptt {
+            padding: 15px;
+            font-size: 18px;
+            background: #333;
+            color: white;
+            border: 2px solid #555;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #ptt:active {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Radio</h1>
+
+    <label>Channel:</label>
+    <select id="radioChannel">
+        <option>Dispatch</option>
+        <option>LEO 1</option>
+        <option>Fire/EMS</option>
+        <option>DOT</option>
+    </select>
+
+    <br><br>
+
+    <button id="ptt">Push To Talk</button>
+
+    <div id="radioAlert"></div>
+
+    <script>
+        // -----------------------------
+        // RADIO BEEPS
+        // -----------------------------
+        function playKeyUp() {
+            new Audio("/tones/unit_keyup.mp3").play();
+        }
+
+        function playUnkey() {
+            new Audio("/tones/unit_unkey.mp3").play();
+        }
+
+        // -----------------------------
+        // TTS SYSTEM
+        // -----------------------------
+        function speak(text, severity = "normal") {
+            const msg = new SpeechSynthesisUtterance(text);
+
+            const voices = speechSynthesis.getVoices();
+            const maleVoice = voices.find(v => v.name.toLowerCase().includes("male")) || voices[0];
+            msg.voice = maleVoice;
+
+            if (severity === "high") {
+                msg.rate = 1.2;
+                msg.pitch = 0.9;
+                msg.volume = 1;
+            } else {
+                msg.rate = 0.9;
+                msg.pitch = 0.8;
+                msg.volume = 0.9;
+            }
+
+            speechSynthesis.speak(msg);
+        }
+
+        // -----------------------------
+        // UNIT TRANSMIT (PTT BUTTON)
+        // -----------------------------
+        document.getElementById("ptt").addEventListener("mousedown", () => {
+            playKeyUp();
+        });
+
+        document.getElementById("ptt").addEventListener("mouseup", () => {
+            const text = "Unit transmitting test message.";
+            const duration = text.length * 50;
+
+            speak(text, "normal");
+
+            setTimeout(() => {
+                playUnkey();
+            }, duration);
+        });
+
+        // -----------------------------
+        // DISPATCH CALL ANNOUNCEMENT
+        // -----------------------------
+        function dispatchCall(call) {
+            playKeyUp();
+
+            setTimeout(() => {
+                const message = call.severity === "high"
+                    ? `ATTENTION ALL UNITS! ${call.type.toUpperCase()} at ${call.location.toUpperCase()}.`
+                    : `Attention all units, ${call.type} at ${call.location}.`;
+
+                speak(message, call.severity);
+
+                const duration = message.length * 50;
+                setTimeout(() => {
+                    playUnkey();
+                }, duration);
+
+            }, 300);
+        }
+
+        // -----------------------------
+        // RADIO ALERT BANNER
+        // -----------------------------
+        function showRadioAlert(call) {
+            const alertBox = document.getElementById("radioAlert");
+            alertBox.innerHTML = `NEW CALL: ${call.type} @ ${call.location}`;
+            alertBox.style.display = "block";
+
+            setTimeout(() => {
+                alertBox.style.display = "none";
+            }, 5000);
+        }
+
+        // -----------------------------
+        // LISTEN FOR CALLS FROM CAD
+        // -----------------------------
+        window.addEventListener("storage", (e) => {
+            if (e.key === "newCall") {
+                const call = JSON.parse(e.newValue);
+                showRadioAlert(call);
+                dispatchCall(call);
+            }
+        });
+    </script>
+
+</body>
+</html>
