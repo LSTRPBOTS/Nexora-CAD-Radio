@@ -3,38 +3,18 @@
 <head>
     <title>System Login</title>
     <style>
-        body {
-            background: #111;
-            color: #fff;
-            font-family: Arial, sans-serif;
-        }
-        nav {
-            background: #000;
-            padding: 10px;
-        }
-        nav a {
-            color: #fff;
-            margin-right: 15px;
-            text-decoration: none;
-        }
+        body { background:#111; color:#fff; font-family:Arial; }
+        nav { background:#000; padding:10px; }
+        nav a { color:#fff; margin-right:15px; text-decoration:none; }
         .container {
-            max-width: 400px;
-            margin: 80px auto;
-            background: #222;
-            padding: 20px;
-            border-radius: 8px;
+            max-width:400px; margin:80px auto;
+            background:#222; padding:20px; border-radius:8px;
         }
         input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            background: #333;
-            color: #fff;
-            border: 1px solid #555;
+            width:100%; padding:10px; margin-top:10px;
+            background:#333; color:#fff; border:1px solid #555;
         }
-        button {
-            cursor: pointer;
-        }
+        button { cursor:pointer; }
     </style>
 </head>
 <body>
@@ -45,6 +25,7 @@
     <a href="mdt.html">MDT</a>
     <a href="radio.html">Radio</a>
     <a href="admin.html">Admin</a>
+    <a href="settings.html">Settings</a>
 </nav>
 
 <div class="container">
@@ -68,27 +49,36 @@
 </div>
 
 <script>
-    document.getElementById("loginBtn").addEventListener("click", () => {
-        const name = document.getElementById("name").value.trim();
-        const badge = document.getElementById("badge").value.trim();
-        const role = document.getElementById("role").value;
+document.getElementById("loginBtn").addEventListener("click", () => {
+    const name = document.getElementById("name").value.trim();
+    const badge = document.getElementById("badge").value.trim();
+    const role = document.getElementById("role").value;
 
-        if (!name || !badge) {
-            alert("Enter name and badge/unit ID.");
-            return;
+    if (!name || !badge) {
+        alert("Enter name and badge/unit ID.");
+        return;
+    }
+
+    // PER-USER SETTINGS
+    const user = {
+        name,
+        badge,
+        role,
+        settings: {
+            pttKey: "KeyT",
+            panicKey: "KeyP",
+            frequency: "154.890",
+            panicButtonLabel: "PANIC"
         }
+    };
 
-        const user = { name, badge, role };
+    localStorage.setItem("currentUser", JSON.stringify(user));
 
-        // SAVE LOGIN PERMANENTLY
-        localStorage.setItem("currentUser", JSON.stringify(user));
-
-        // REDIRECT TO CORRECT PAGE
-        if (role === "cad") window.location.href = "cad.html";
-        if (role === "mdt") window.location.href = "mdt.html";
-        if (role === "radio") window.location.href = "radio.html";
-        if (role === "admin") window.location.href = "admin.html";
-    });
+    if (role === "cad") window.location.href = "cad.html";
+    if (role === "mdt") window.location.href = "mdt.html";
+    if (role === "radio") window.location.href = "radio.html";
+    if (role === "admin") window.location.href = "admin.html";
+});
 </script>
 
 </body>
