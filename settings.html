@@ -1,1 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Radio Settings</title>
+    <style>
+        body { background:#111; color:#fff; font-family:Arial; }
+        nav { background:#000; padding:10px; }
+        nav a { color:#fff; margin-right:15px; text-decoration:none; }
+        .container { padding:20px; max-width:500px; margin:auto; }
+        input, select, button {
+            width:100%; padding:10px; margin-top:10px;
+            background:#222; color:#fff; border:1px solid #555;
+        }
+        button { cursor:pointer; }
+        #radioPreview {
+            width:200px; height:200px; margin-top:10px;
+            background:#222; background-size:contain;
+            background-repeat:no-repeat; background-position:center;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html">Login</a>
+    <a href="cad.html">CAD</a>
+    <a href="mdt.html">MDT</a>
+    <a href="radio.html">Radio</a>
+    <a href="admin.html">Admin</a>
+    <a href="settings.html">Settings</a>
+</nav>
+
+<div class="container">
+    <h1>Radio Settings</h1>
+
+    <label>Radio Model Name</label>
+    <input id="radioName" placeholder="Motorola APX 8000">
+
+    <button onclick="findRadioImage()">Find Radio Image (placeholder)</button>
+
+    <label>Radio Image Preview</label>
+    <div id="radioPreview"></div>
+
+    <label>PTT Hotkey</label>
+    <input id="pttKey" placeholder="Example: KeyT">
+
+    <label>Panic Hotkey</label>
+    <input id="panicKey" placeholder="Example: KeyP">
+
+    <label>Frequency / Talkgroup</label>
+    <input id="frequency" placeholder="Example: 154.890 or TG 101">
+
+    <label>Panic Button Label</label>
+    <input id="panicLabel" placeholder="Example: EMERGENCY">
+
+    <label>Show Who Is Talking</label>
+    <select id="showTalking">
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+    </select>
+
+    <button onclick="saveSettings()">Save Settings</button>
+</div>
+
+<script>
+const rawUser = localStorage.getItem("currentUser");
+if (!rawUser) window.location.href = "index.html";
+const currentUser = JSON.parse(rawUser);
+
+function loadSettings() {
+    const s = currentUser.settings || {};
+
+    document.getElementById("radioName").value = s.radioName || "";
+    document.getElementById("pttKey").value = s.pttKey || "KeyT";
+    document.getElementById("panicKey").value = s.panicKey || "KeyP";
+    document.getElementById("frequency").value = s.frequency || "154.890";
+    document.getElementById("panicLabel").value = s.panicButtonLabel || "PANIC";
+    document.getElementById("showTalking").value = s.showWhoIsTalking ? "true" : "false";
+
+    if (s.radioImage) {
+        document.getElementById("radioPreview").style.backgroundImage = `url('${s.radioImage}')`;
+    }
+}
+
+// Placeholder: you’ll replace this with a real API call later
+async function findRadioImage() {
+    const name = document.getElementById("radioName").value.trim();
+    if (!name) {
+        alert("Type a radio name first.");
+        return;
+    }
+
+    // For now, just pretend we found something and let you paste a URL manually.
+    const manual = prompt("TEMP: Paste an image URL for " + name);
+    if (!manual) return;
+
+    currentUser.settings = currentUser.settings || {};
+    currentUser.settings.radioName = name;
+    currentUser.settings.radioImage = manual;
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+    document.getElementById("radioPreview").style.backgroundImage = `url('${manual}')`;
+    alert("Radio image saved for this user (manual placeholder).");
+}
+
+function saveSettings() {
+    currentUser.settings = currentUser.settings || {};
+    currentUser.settings.radioName = document.getElementById("radioName").value.trim();
+    currentUser.settings.pttKey = document.getElementById("pttKey").value.trim() || "KeyT";
+    currentUser.settings.panicKey = document.getElementById("panicKey").value.trim() || "KeyP";
+    currentUser.settings.frequency = document.getElementById("frequency").value.trim() || "154.890";
+    currentUser.settings.panicButtonLabel = document.getElementById("panicLabel").value.trim() || "PANIC";
+    currentUser.settings.showWhoIsTalking = document.getElementById("showTalking").value === "true";
+
+    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    alert("Settings saved permanently.");
+}
+
+loadSettings();
+</script>
+
+</body>
+</html>
 
