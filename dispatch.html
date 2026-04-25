@@ -253,12 +253,12 @@ function createCall() {
   const data = getData();
   const call = {
     id: Date.now(),
-    // New, MDT-friendly fields:
+    // MDT-friendly fields:
     type: title,
     location: loc,
     notes: det,
     priority: pri,
-    // Backwards-compatible with old fields:
+    // legacy compatibility:
     title,
     loc,
     det
@@ -275,7 +275,6 @@ function createCall() {
   document.getElementById("callPriority").value = "3";
 }
 
-// Priority / Panic
 function sendPriority() {
   const data = getData();
   data.radio.push("⚠ PRIORITY TONE ACTIVATED");
