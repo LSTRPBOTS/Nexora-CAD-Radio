@@ -1,192 +1,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Panel</title>
-    <style>
-        body { background:#111; color:#fff; font-family:Arial; }
-        nav { background:#000; padding:10px; }
-        nav a { color:#fff; margin-right:15px; text-decoration:none; }
-        .container { padding:20px; }
-        input, button {
-            padding:10px; margin-top:10px;
-            background:#222; color:#fff; border:1px solid #555;
-        }
-        button { cursor:pointer; }
-        .listBox div {
-            border:1px solid #444; padding:10px; margin-top:10px;
-        }
-        .listBox button {
-            background:darkred; border:1px solid #aa0000;
-        }
-        h2 { margin-top:40px; }
-    </style>
+  <title>Nexora Admin</title>
 </head>
 <body>
+  <h2>Admin Panel</h2>
+  <div id="userList"></div>
 
-<nav>
-    <a href="index.html">Login</a>
-    <a href="cad.html">CAD</a>
-    <a href="mdt.html">MDT</a>
-    <a href="radio.html">Radio</a>
-    <a href="admin.html">Admin</a>
-    <a href="settings.html">Settings</a>
-    <a href="#" onclick="logout()">Logout</a>
-</nav>
+  <h3>Change My Admin Credentials</h3>
+  <input id="newUsername" placeholder="New admin username">
+  <input id="newPassword" placeholder="New admin password" type="password">
+  <input id="newBadge" placeholder="New admin badge">
+  <button onclick="updateMyAdmin()">Update Admin Account</button>
 
-<div class="container">
-    <h1>Admin Panel</h1>
-    <div id="userInfo"></div>
+  <script src="users.js"></script>
+  <script>
+    const current = getCurrentUser();
+    if (!current || !current.isAdmin) {
+      alert("Not authorized");
+      location.href = "index.html";
+    }
 
-    <h2>Add Admin</h2>
-    <input id="adminName" placeholder="Name">
-    <input id="adminBadge" placeholder="Badge / Unit ID">
-    <button onclick="addAdminUI()">Add Admin</button>
+    function renderUsers() {
+      const users = getUsers();
+      const container = document.getElementById("userList");
+      container.innerHTML = "";
 
-    <h3>Admin List</h3>
-    <div id="adminList" class="listBox"></div>
+      users.forEach((u, index) => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          ${u.username} - Badge: ${u.badge} - Admin: ${u.isAdmin ? "YES" : "NO"}
+          <button onclick="toggleAdmin(${index})">Toggle Admin</button>
+          <button onclick="deleteUser(${index})">Delete</button>
+        `;
+        container.appendChild(div);
+      });
+    }
 
-    <h2>Add Unit (CAD/MDT)</h2>
-    <input id="unitName" placeholder="Officer Name">
-    <input id="unitBadge" placeholder="Unit ID (1A-12)">
-    <button onclick="addUnitUI()">Add Unit</button>
+    function toggleAdmin(i) {
+      const users = getUsers();
+      users[i].isAdmin = !users[i].isAdmin;
+      saveUsers(users);
+      renderUsers();
+    }
 
-    <h3>Unit List</h3>
-    <div id="unitList" class="listBox"></div>
+    function deleteUser(i) {
+      const users = getUsers();
+      if (users[i].username === current.username && users[i].badge === current.badge) {
+        alert("You cannot delete the currently logged-in admin this way.");
+        return;
+      }
+      users.splice(i, 1);
+      saveUsers(users);
+      renderUsers();
+    }
 
-    <h2>Add Dispatcher</h2>
-    <input id="dispName" placeholder="Dispatcher Name">
-    <input id="dispBadge" placeholder="Dispatcher ID">
-    <button onclick="addDispatcherUI()">Add Dispatcher</button>
+    function updateMyAdmin() {
+      const newUsername = document.getElementById("newUsername").value.trim();
+      const newPassword = document.getElementById("newPassword").value.trim();
+      const newBadge = document.getElementById("newBadge").value.trim();
 
-    <h3>Dispatcher List</h3>
-    <div id="dispatcherList" class="listBox"></div>
-</div>
+      if (!newUsername || !newPassword || !newBadge) {
+        alert("All fields required");
+        return;
+      }
 
-<script>
-const rawUser = localStorage.getItem("currentUser");
-if (!rawUser) window.location.href = "index.html";
-const currentUser = JSON.parse(rawUser);
+      let users = getUsers();
+      const idx = users.findIndex(u =>
+        u.username === current.username &&
+        u.badge === current.badge
+      );
 
-document.getElementById("userInfo").innerText =
-    `Logged in as: ${currentUser.name} (${currentUser.badge}) – Role: ${currentUser.role.toUpperCase()}`;
+      if (idx === -1) {
+        alert("Current admin not found");
+        return;
+      }
 
-function logout() {
-    localStorage.removeItem("currentUser");
-    window.location.href = "index.html";
-}
+      users[idx].username = newUsername;
+      users[idx].password = newPassword;
+      users[idx].badge = newBadge;
+      users[idx].isAdmin = true;
 
-function loadList(key) {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : [];
-}
+      saveUsers(users);
+      setCurrentUser(users[idx]);
 
-function saveList(key, list) {
-    localStorage.setItem(key, JSON.stringify(list));
-}
+      alert("Admin credentials updated");
+      renderUsers();
+    }
 
-// Admins
-function addAdmin(name, badge) {
-    const list = loadList("adminList");
-    list.push({ name, badge });
-    saveList("adminList", list);
-}
-function removeAdmin(badge) {
-    let list = loadList("adminList");
-    list = list.filter(a => a.badge !== badge);
-    saveList("adminList", list);
-}
-function addAdminUI() {
-    const name = adminName.value.trim();
-    const badge = adminBadge.value.trim();
-    if (!name || !badge) return alert("Enter name and badge.");
-    addAdmin(name, badge);
-    renderAdmins();
-    adminName.value = "";
-    adminBadge.value = "";
-}
-function renderAdmins() {
-    const list = loadList("adminList");
-    adminList.innerHTML = "";
-    list.forEach(a => {
-        adminList.innerHTML += `
-            <div>
-                <strong>${a.name}</strong> (${a.badge})
-                <br>
-                <button onclick="removeAdmin('${a.badge}'); renderAdmins();">Remove</button>
-            </div>`;
-    });
-}
-
-// Units
-function addUnit(name, badge) {
-    const list = loadList("unitList");
-    list.push({ name, badge });
-    saveList("unitList", list);
-}
-function removeUnit(badge) {
-    let list = loadList("unitList");
-    list = list.filter(u => u.badge !== badge);
-    saveList("unitList", list);
-}
-function addUnitUI() {
-    const name = unitName.value.trim();
-    const badge = unitBadge.value.trim();
-    if (!name || !badge) return alert("Enter name and unit ID.");
-    addUnit(name, badge);
-    renderUnits();
-    unitName.value = "";
-    unitBadge.value = "";
-}
-function renderUnits() {
-    const list = loadList("unitList");
-    unitList.innerHTML = "";
-    list.forEach(u => {
-        unitList.innerHTML += `
-            <div>
-                <strong>${u.name}</strong> (${u.badge})
-                <br>
-                <button onclick="removeUnit('${u.badge}'); renderUnits();">Remove</button>
-            </div>`;
-    });
-}
-
-// Dispatchers
-function addDispatcher(name, badge) {
-    const list = loadList("dispatcherList");
-    list.push({ name, badge });
-    saveList("dispatcherList", list);
-}
-function removeDispatcher(badge) {
-    let list = loadList("dispatcherList");
-    list = list.filter(d => d.badge !== badge);
-    saveList("dispatcherList", list);
-}
-function addDispatcherUI() {
-    const name = dispName.value.trim();
-    const badge = dispBadge.value.trim();
-    if (!name || !badge) return alert("Enter dispatcher name and ID.");
-    addDispatcher(name, badge);
-    renderDispatchers();
-    dispName.value = "";
-    dispBadge.value = "";
-}
-function renderDispatchers() {
-    const list = loadList("dispatcherList");
-    dispatcherList.innerHTML = "";
-    list.forEach(d => {
-        dispatcherList.innerHTML += `
-            <div>
-                <strong>${d.name}</strong> (${d.badge})
-                <br>
-                <button onclick="removeDispatcher('${d.badge}'); renderDispatchers();">Remove</button>
-            </div>`;
-    });
-}
-
-renderAdmins();
-renderUnits();
-renderDispatchers();
-</script>
-
+    renderUsers();
+  </script>
 </body>
 </html>
