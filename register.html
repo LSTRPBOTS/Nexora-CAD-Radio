@@ -1,49 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Nexora Register</title>
+    <title>Create Account</title>
+    <style>
+        body { background:#111; color:#fff; font-family:Arial; }
+        .container {
+            max-width:400px; margin:80px auto;
+            background:#222; padding:20px; border-radius:8px;
+        }
+        input, button {
+            width:100%; padding:10px; margin-top:10px;
+            background:#333; color:#fff; border:1px solid #555;
+        }
+    </style>
 </head>
 <body>
-  <h2>Create Account</h2>
 
-  <input id="username" placeholder="Username">
-  <input id="password" placeholder="Password" type="password">
-  <input id="badge" placeholder="Badge Number">
+<div class="container">
+    <h2>Create Account</h2>
 
-  <button onclick="register()">Register</button>
+    <label>Username</label>
+    <input id="username" placeholder="Enter username">
 
-  <script src="users.js"></script>
-  <script>
-    initDefaultAdmin();
+    <label>Password</label>
+    <input id="password" type="password" placeholder="Enter password">
 
-    function register() {
-      let users = getUsers();
+    <label>Badge Number</label>
+    <input id="badge" placeholder="Badge / Unit ID">
 
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const badge = document.getElementById("badge").value.trim();
+    <button onclick="register()">Register</button>
+</div>
 
-      if (!username || !password || !badge) {
+<script src="users.js"></script>
+<script>
+initDefaultAdmin();
+
+function register() {
+    let users = getUsers();
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const badge = document.getElementById("badge").value.trim();
+
+    if (!username || !password || !badge) {
         alert("All fields are required");
         return;
-      }
+    }
 
-      if (users.find(u => u.username === username)) {
+    if (users.find(u => u.username === username)) {
         alert("Username already exists");
         return;
-      }
+    }
 
-      users.push({
+    users.push({
         username,
         password,
         badge,
         isAdmin: false
-      });
+    });
 
-      saveUsers(users);
-      alert("Account created");
-      location.href = "index.html";
-    }
-  </script>
+    saveUsers(users);
+    alert("Account created!");
+    location.href = "index.html";
+}
+</script>
+
 </body>
 </html>
