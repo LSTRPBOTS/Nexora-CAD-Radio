@@ -1,79 +1,36 @@
-// Load existing data
-let officers = JSON.parse(localStorage.getItem("officers")) || {};
-let dispatchers = JSON.parse(localStorage.getItem("dispatchers")) || {};
+const user = JSON.parse(localStorage.getItem("currentUser"));
+if (!user || user.role !== "Admin") window.location.href = "./index.html";
+
+document.getElementById("userInfo").innerText =
+  `Logged in as: ${user.name} (${user.badge})`;
+
+let govOfficials = JSON.parse(localStorage.getItem("govOfficials")) || [];
 
 function save() {
-  localStorage.setItem("officers", JSON.stringify(officers));
-  localStorage.setItem("dispatchers", JSON.stringify(dispatchers));
-  render();
+  localStorage.setItem("govOfficials", JSON.stringify(govOfficials));
+  load();
 }
 
-// ===============================
-// ADD OFFICER
-// ===============================
-function addOfficer() {
-  const badge = document.getElementById("badge").value;
-  const callsign = document.getElementById("callsign").value;
-  const department = document.getElementById("department").value;
-  const rank = document.getElementById("rank").value;
+function addGov() {
+  const u = document.getElementById("govUser").value.trim();
+  const p = document.getElementById("govPass").value.trim();
+  const b = document.getElementById("govBadge").value.trim();
 
-  if (!badge || !callsign || !department) return;
+  if (!u || !p || !b) return alert("Fill all fields.");
 
-  officers[badge] = {
-    callsign,
-    department,
-    rank
-  };
-
+  govOfficials.push({ username: u, password: p, badge: b });
   save();
 }
 
-// ===============================
-// ADD DISPATCH MEMBER
-// ===============================
-function addDispatch() {
-  const badge = document.getElementById("dBadge").value;
-  const name = document.getElementById("dName").value;
+function load() {
+  const list = document.getElementById("govList");
+  list.innerHTML = "";
 
-  if (!badge || !name) return;
-
-  dispatchers[badge] = {
-    name,
-    role: "dispatch"
-  };
-
-  save();
+  govOfficials.forEach(g => {
+    const div = document.createElement("div");
+    div.innerText = `${g.username} (${g.badge})`;
+    list.appendChild(div);
+  });
 }
 
-// ===============================
-// RENDER LISTS
-// ===============================
-function render() {
-  const oList = document.getElementById("officerList");
-  const dList = document.getElementById("dispatchList");
-
-  oList.innerHTML = "";
-  dList.innerHTML = "";
-
-  // Officers
-  for (let b in officers) {
-    const o = officers[b];
-    oList.innerHTML += `
-      <div>
-        <b>${b}</b> — ${o.callsign} — ${o.department} — ${o.rank}
-      </div>
-    `;
-  }
-
-  // Dispatchers
-  for (let b in dispatchers) {
-    const d = dispatchers[b];
-    dList.innerHTML += `
-      <div>
-        <b>${b}</b> — ${d.name}
-      </div>
-    `;
-  }
-}
-
-render();
+load();
