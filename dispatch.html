@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dispatch Panel</title>
+  <title>Dispatch Console</title>
   <style>
     body { background:#111; color:white; font-family:Arial; padding:20px; }
+    input, button { padding:10px; margin:5px; width:300px; }
   </style>
 </head>
 <body>
 
-<h1>Dispatch Panel</h1>
-<div id="userInfo"></div>
+<h1>Dispatch Console</h1>
+<div id="status">Connecting...</div>
 
-<script>
-const user = JSON.parse(localStorage.getItem("currentUser"));
-if (!user || user.role !== "Dispatch") window.location.href = "./index.html";
+<input id="callText" placeholder="Call details (Example: 10-50, Main St)">
+<br>
+<button onclick="sendCall()">Broadcast Call</button>
 
-document.getElementById("userInfo").innerText =
-  `Logged in as: ${user.name} (${user.badge})`;
-</script>
-
+<script src="dispatch.js"></script>
 </body>
 </html>
