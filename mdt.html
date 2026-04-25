@@ -61,7 +61,6 @@ const rawUser = localStorage.getItem("currentUser");
 if (!rawUser) window.location.href = "./index.html";
 </script>
 
-<!-- VOICE ALERT -->
 <audio id="voiceAlert" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b8e1f3c8b.mp3?filename=alert-104024.mp3"></audio>
 
 <div class="panel">
@@ -72,12 +71,10 @@ if (!rawUser) window.location.href = "./index.html";
 <script>
 let lastCallCount = 0;
 
-// Load calls from CAD
 function loadCalls() {
   return JSON.parse(localStorage.getItem("calls")) || [];
 }
 
-// Render call list
 function renderCalls() {
   const calls = loadCalls();
   const box = document.getElementById("callList");
@@ -96,14 +93,27 @@ function renderCalls() {
   });
 }
 
-// Play voice alert
 function playVoiceAlert() {
   const v = document.getElementById("voiceAlert");
   v.volume = 1.0;
   v.play();
 }
 
-// Open new call window
+function speakCall(call) {
+  const msg = new SpeechSynthesisUtterance(
+    `New call. ${call.type}. At ${call.location}. Priority ${call.priority}.`
+  );
+  msg.rate = 1;
+  msg.pitch = 1;
+  msg.volume = 1;
+
+  const voices = speechSynthesis.getVoices();
+  const male = voices.find(v => v.name.toLowerCase().includes("male"));
+  if (male) msg.voice = male;
+
+  speechSynthesis.speak(msg);
+}
+
 function openCallWindow(call) {
   const win = window.open("", "_blank", "width=450,height=600");
 
@@ -160,13 +170,14 @@ function openCallWindow(call) {
   win.document.close();
 }
 
-// Detect new calls (polling fix)
+// Polling for new calls (works even if CAD tab is closed)
 setInterval(() => {
   const calls = loadCalls();
 
   if (calls.length > lastCallCount) {
     const newCall = calls[calls.length - 1];
     playVoiceAlert();
+    speakCall(newCall);
     openCallWindow(newCall);
   }
 
