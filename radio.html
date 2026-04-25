@@ -58,6 +58,9 @@
 </div>
 
 <script>
+// ----------------------
+// LOAD USER
+// ----------------------
 const rawUser = localStorage.getItem("currentUser");
 if (!rawUser) window.location.href = "./index.html";
 const currentUser = JSON.parse(rawUser);
@@ -66,61 +69,96 @@ document.getElementById("userInfo").innerText =
     `Logged in as: ${currentUser.name} (${currentUser.badge})`;
 
 const s = currentUser.settings || {};
-const freq = s.frequency || "154.890";
-document.getElementById("freqInfo").innerText = `Frequency / TG: ${freq}`;
+let currentFrequency = s.frequency || "154.890";
+document.getElementById("freqInfo").innerText = `Frequency / TG: ${currentFrequency}`;
 
+// ----------------------
+// RADIO FACE IMAGE
+// ----------------------
 const face = document.getElementById("radioFace");
 if (s.radioImage) {
     face.style.backgroundImage = `url('${s.radioImage}')`;
 }
 
+// ----------------------
+// BUTTON LABELS
+// ----------------------
 const pttKey = s.pttKey || "KeyT";
 const panicKey = s.panicKey || "KeyP";
-const panicLabel = s.panicButtonLabel || "PANIC";
-document.getElementById("panicBtn").innerText = panicLabel;
+document.getElementById("panicBtn").innerText = s.panicButtonLabel || "PANIC";
 
 const talkOverlay = document.getElementById("talkOverlay");
 
+// ----------------------
+// TONES
+// ----------------------
+function playTone(type) {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    osc.frequency.value = type === "key" ? 1000 : 600;
+    osc.connect(ctx.destination);
+    osc.start();
+    setTimeout(() => { osc.stop(); ctx.close(); }, 120);
+}
+
+// ----------------------
+// WHO IS TALKING
+// ----------------------
 function showTalking(user) {
     if (!s.showWhoIsTalking) return;
-    talkOverlay.innerText = `${user.name} (${user.badge})\n${user.settings?.frequency || ""}`;
+    talkOverlay.innerText = `${user.name} (${user.badge})\n${currentFrequency}`;
     talkOverlay.style.display = "block";
 }
 function hideTalking() {
     talkOverlay.style.display = "none";
 }
 
-// Placeholder PTT logic (no WebRTC yet)
+// ----------------------
+// PLACEHOLDER TX LOGIC
+// (WebRTC will replace this)
+// ----------------------
 let isTransmitting = false;
 
 function startTX() {
     if (isTransmitting) return;
     isTransmitting = true;
+
+    playTone("key");
     showTalking(currentUser);
+
     console.log("TX START (placeholder)");
 }
+
 function stopTX() {
     if (!isTransmitting) return;
     isTransmitting = false;
+
+    playTone("unkey");
     hideTalking();
+
     console.log("TX STOP (placeholder)");
 }
 
+// ----------------------
+// BUTTON EVENTS
+// ----------------------
 document.getElementById("pttBtn").addEventListener("mousedown", startTX);
 document.getElementById("pttBtn").addEventListener("mouseup", stopTX);
 document.getElementById("pttBtn").addEventListener("mouseleave", stopTX);
 
-// Panic placeholder
+// ----------------------
+// PANIC
+// ----------------------
 document.getElementById("panicBtn").addEventListener("click", () => {
-    alert("PANIC triggered (placeholder). This would broadcast an emergency over Firebase/WebRTC.");
+    alert("PANIC triggered (placeholder).");
 });
 
-// Keyboard PTT / Panic
+// ----------------------
+// KEYBOARD EVENTS
+// ----------------------
 document.addEventListener("keydown", (e) => {
     if (e.code === pttKey) startTX();
-    if (e.code === panicKey) {
-        alert("PANIC triggered via hotkey (placeholder).");
-    }
+    if (e.code === panicKey) alert("PANIC triggered via hotkey (placeholder).");
 });
 document.addEventListener("keyup", (e) => {
     if (e.code === pttKey) stopTX();
