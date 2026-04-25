@@ -1,99 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>System Login</title>
-    <style>
-        body { background:#111; color:#fff; font-family:Arial; }
-        nav { background:#000; padding:10px; }
-        nav a { color:#fff; margin-right:15px; text-decoration:none; }
-        .container {
-            max-width:400px; margin:80px auto;
-            background:#222; padding:20px; border-radius:8px;
-        }
-        input, select, button {
-            width:100%; padding:10px; margin-top:10px;
-            background:#333; color:#fff; border:1px solid #555;
-        }
-        button { cursor:pointer; }
-    </style>
+  <title>Nexora CAD Login</title>
+  <style>
+    body { background:#111; color:white; font-family:Arial; text-align:center; padding-top:50px; }
+    input, select, button { padding:10px; margin:5px; width:250px; }
+    #error { color:red; margin-top:10px; }
+  </style>
 </head>
 <body>
 
-<nav>
-    <a href="./index.html">Login</a>
-    <a href="./register.html">Register</a>
-</nav>
+<h1>Nexora CAD System Login</h1>
 
-<div class="container">
-    <h2>Secure Login</h2>
+<form onsubmit="login(); return false;">
+  <input id="username" placeholder="Username"><br>
+  <input id="password" type="password" placeholder="Password"><br>
+  <input id="badge" placeholder="Badge / Unit ID"><br>
 
-    <label>Username</label>
-    <input id="username" placeholder="Enter username">
+  <select id="role">
+    <option>Officer</option>
+    <option>Dispatch</option>
+    <option>Government</option>
+    <option>Admin</option>
+  </select><br>
 
-    <label>Password</label>
-    <input id="password" type="password" placeholder="Enter password">
+  <button type="submit">Login</button>
+  <p id="error"></p>
+</form>
 
-    <label>Badge Number</label>
-    <input id="badge" placeholder="Badge / Unit ID">
-
-    <label>Role (Select or Type Secret Role)</label>
-    <select id="roleSelect">
-        <option value="cad">Dispatch / CAD</option>
-        <option value="mdt">Unit / MDT</option>
-        <option value="radio">Radio Only</option>
-        <option value="admin">Admin Panel</option>
-    </select>
-
-    <input id="roleManual" placeholder="Type secret role (optional)">
-
-    <button id="loginBtn">Login</button>
-</div>
-
-<script src="users.js"></script>
-<script>
-initDefaultAdmin();
-
-document.getElementById("loginBtn").addEventListener("click", () => {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const badge = document.getElementById("badge").value.trim();
-
-    const roleSelect = document.getElementById("roleSelect").value;
-    const roleManual = document.getElementById("roleManual").value.trim();
-
-    const role = roleManual !== "" ? roleManual : roleSelect;
-
-    if (!username || !password || !badge) {
-        alert("All fields are required.");
-        return;
-    }
-
-    const users = getUsers();
-
-    const user = users.find(u =>
-        u.username === username &&
-        u.password === password &&
-        u.badge === badge
-    );
-
-    if (!user) {
-        alert("Invalid username, password, or badge.");
-        return;
-    }
-
-    setCurrentUser({ ...user, role });
-
-    if (role === "admin" && user.isAdmin) {
-        window.location.href = "./admin.html";
-        return;
-    }
-
-    if (role === "cad") window.location.href = "./cad.html";
-    else if (role === "mdt") window.location.href = "./mdt.html";
-    else if (role === "radio") window.location.href = "./radio.html";
-    else window.location.href = "./cad.html";
-});
-</script>
-
+<script src="login.js"></script>
 </body>
 </html>
