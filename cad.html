@@ -49,6 +49,14 @@
         <label>Description</label>
         <textarea id="callDesc" rows="3" placeholder="Details..."></textarea>
 
+        <label>Priority</label>
+        <select id="callPriority">
+            <option value="1">Priority 1 - Emergency</option>
+            <option value="2">Priority 2 - Urgent</option>
+            <option value="3" selected>Priority 3 - Routine</option>
+            <option value="4">Priority 4 - Info</option>
+        </select>
+
         <button onclick="createCall()">Create Call</button>
     </div>
 
@@ -73,6 +81,7 @@ let calls = JSON.parse(localStorage.getItem("calls")) || [];
 
 function saveCalls() {
     localStorage.setItem("calls", JSON.stringify(calls));
+    window.dispatchEvent(new Event("storage")); // MDT hears this
 }
 
 // ---- UNITS (FROM ADMIN) ----
@@ -95,11 +104,12 @@ function renderUnits() {
     });
 }
 
-// ---- CALL CREATION ----
+// ---- CREATE CALL ----
 function createCall() {
     const type = document.getElementById("callType").value.trim();
     const loc = document.getElementById("callLocation").value.trim();
     const desc = document.getElementById("callDesc").value.trim();
+    const pri = document.getElementById("callPriority").value;
 
     if (!type || !loc) {
         alert("Type and Location are required.");
@@ -111,6 +121,7 @@ function createCall() {
         type,
         location: loc,
         description: desc,
+        priority: pri,
         status: "Pending",
         units: []
     };
@@ -122,9 +133,10 @@ function createCall() {
     document.getElementById("callType").value = "";
     document.getElementById("callLocation").value = "";
     document.getElementById("callDesc").value = "";
+    document.getElementById("callPriority").value = "3";
 }
 
-// ---- CALL RENDERING ----
+// ---- RENDER CALLS ----
 function renderCalls() {
     const box = document.getElementById("callList");
     box.innerHTML = "";
@@ -146,6 +158,7 @@ function renderCalls() {
             <strong>Call #${call.id}</strong><br>
             Type: ${call.type}<br>
             Location: ${call.location}<br>
+            Priority: ${call.priority}<br>
             Status: ${call.status}<br>
             Units: ${call.units.join(", ") || "None"}<br><br>
 
