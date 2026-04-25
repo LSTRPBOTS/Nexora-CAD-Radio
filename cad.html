@@ -74,14 +74,13 @@
 <script>
 const rawUser = localStorage.getItem("currentUser");
 if (!rawUser) window.location.href = "./index.html";
-const currentUser = JSON.parse(rawUser);
 
 // ---- CALL STORAGE (SHARED WITH MDT) ----
 let calls = JSON.parse(localStorage.getItem("calls")) || [];
 
 function saveCalls() {
     localStorage.setItem("calls", JSON.stringify(calls));
-    window.dispatchEvent(new Event("storage")); // MDT hears this
+    window.dispatchEvent(new Event("storage"));
 }
 
 // ---- UNITS (FROM ADMIN) ----
