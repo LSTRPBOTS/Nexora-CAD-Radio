@@ -13,6 +13,22 @@
       gap: 20px;
     }
 
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background:#000;
+      padding:10px;
+      z-index: 10;
+    }
+
+    nav a {
+      color:#fff;
+      margin-right:15px;
+      text-decoration:none;
+    }
+
     .panel {
       background: #111418;
       padding: 20px;
@@ -21,6 +37,7 @@
       flex: 1;
       height: 90vh;
       overflow-y: auto;
+      margin-top: 60px;
     }
 
     h2 {
@@ -76,6 +93,22 @@
 </head>
 
 <body>
+
+<nav>
+  <a href="./index.html">Login</a>
+  <a href="./cad.html">CAD</a>
+  <a href="./mdt.html">MDT</a>
+  <a href="./radio.html">Radio</a>
+  <a href="./admin.html">Admin</a>
+  <a href="./settings.html">Settings</a>
+  <a href="./dispatch.html">Dispatch</a>
+</nav>
+
+<script>
+// LOGIN PROTECTION
+const rawUser = localStorage.getItem("currentUser");
+if (!rawUser) window.location.href = "./index.html";
+</script>
 
 <!-- UNITS PANEL -->
 <div class="panel">
