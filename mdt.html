@@ -160,8 +160,8 @@ function openCallWindow(call) {
   win.document.close();
 }
 
-// Detect new calls
-window.addEventListener("storage", () => {
+// Detect new calls (polling fix)
+setInterval(() => {
   const calls = loadCalls();
 
   if (calls.length > lastCallCount) {
@@ -172,7 +172,7 @@ window.addEventListener("storage", () => {
 
   lastCallCount = calls.length;
   renderCalls();
-});
+}, 1000);
 
 // Initial load
 const initialCalls = loadCalls();
