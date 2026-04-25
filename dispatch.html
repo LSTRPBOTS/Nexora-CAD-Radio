@@ -120,9 +120,16 @@ if (!rawUser) window.location.href = "./index.html";
 <div class="panel">
   <h2>Create Call</h2>
 
-  <input id="callTitle" placeholder="Call Title">
+  <input id="callTitle" placeholder="Call Type (e.g. ROBBERY)">
   <input id="callLocation" placeholder="Location">
-  <textarea id="callDetails" placeholder="Details (optional)"></textarea>
+  <textarea id="callDetails" placeholder="Details / Notes (optional)"></textarea>
+
+  <select id="callPriority">
+    <option value="1">Priority 1 - Emergency</option>
+    <option value="2">Priority 2 - Urgent</option>
+    <option value="3" selected>Priority 3 - Routine</option>
+    <option value="4">Priority 4 - Info</option>
+  </select>
 
   <button onclick="createCall()">Create Call</button>
 
@@ -205,9 +212,10 @@ function renderCalls() {
   data.calls.slice().reverse().forEach(c => {
     box.innerHTML += `
       <div class="callBox">
-        <b>${c.title}</b><br>
-        Location: ${c.loc}<br>
-        ${c.det ? "Details: " + c.det : ""}
+        <b>#${c.id} - ${c.type}</b><br>
+        Location: ${c.location}<br>
+        Priority: ${c.priority}<br>
+        ${c.notes ? "Details: " + c.notes : ""}
       </div>
     `;
   });
@@ -235,28 +243,39 @@ function sendRadio() {
 }
 
 function createCall() {
-  const title = document.getElementById("callTitle").value;
-  const loc = document.getElementById("callLocation").value;
-  const det = document.getElementById("callDetails").value;
+  const title = document.getElementById("callTitle").value.trim();
+  const loc = document.getElementById("callLocation").value.trim();
+  const det = document.getElementById("callDetails").value.trim();
+  const pri = document.getElementById("callPriority").value;
 
   if (!title || !loc) return;
 
   const data = getData();
-  data.calls.push({
+  const call = {
+    id: Date.now(),
+    // New, MDT-friendly fields:
+    type: title,
+    location: loc,
+    notes: det,
+    priority: pri,
+    // Backwards-compatible with old fields:
     title,
     loc,
-    det,
-    id: Date.now()
-  });
+    det
+  };
 
-  data.radio.push(`CALL CREATED → ${title} at ${loc}`);
+  data.calls.push(call);
+
+  data.radio.push(`CALL CREATED → ${title} at ${loc} (P${pri})`);
   saveData(data);
 
   document.getElementById("callTitle").value = "";
   document.getElementById("callLocation").value = "";
   document.getElementById("callDetails").value = "";
+  document.getElementById("callPriority").value = "3";
 }
 
+// Priority / Panic
 function sendPriority() {
   const data = getData();
   data.radio.push("⚠ PRIORITY TONE ACTIVATED");
