@@ -1,4 +1,4 @@
- // Fake accounts stored in JavaScript (frontend only)
+// Fake accounts stored in JavaScript (frontend only)
 const users = {
   "officer1": "1234",
   "officer2": "abcd",
@@ -12,7 +12,7 @@ function login() {
 
   if (users[user] && users[user] === pass) {
     // Redirect to MDT with username in URL
-    window.location.href = "mdt.html?user=" + encodeURIComponent(user);
+    window.location.href = "./mdt.html?user=" + encodeURIComponent(user);
   } else {
     document.getElementById("error").innerText = "Invalid username or password";
   }
