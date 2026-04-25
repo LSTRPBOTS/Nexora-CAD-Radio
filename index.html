@@ -21,65 +21,77 @@
 
 <nav>
     <a href="./index.html">Login</a>
-    <a href="./cad.html">CAD</a>
-    <a href="./mdt.html">MDT</a>
-    <a href="./radio.html">Radio</a>
-    <a href="./admin.html">Admin</a>
-    <a href="./settings.html">Settings</a>
+    <a href="./register.html">Register</a>
 </nav>
 
 <div class="container">
-    <h2>System Login</h2>
+    <h2>Secure Login</h2>
 
-    <label>Display Name</label>
-    <input id="name" placeholder="John Smith">
+    <label>Username</label>
+    <input id="username" placeholder="Enter username">
 
-    <label>Badge / Unit ID</label>
-    <input id="badge" placeholder="1A-12">
+    <label>Password</label>
+    <input id="password" type="password" placeholder="Enter password">
 
-    <label>Role / Mode</label>
-    <select id="role">
+    <label>Badge Number</label>
+    <input id="badge" placeholder="Badge / Unit ID">
+
+    <label>Role (Select or Type Secret Role)</label>
+    <select id="roleSelect">
         <option value="cad">Dispatch / CAD</option>
         <option value="mdt">Unit / MDT</option>
         <option value="radio">Radio Only</option>
         <option value="admin">Admin Panel</option>
     </select>
 
+    <input id="roleManual" placeholder="Type secret role (optional)">
+
     <button id="loginBtn">Login</button>
 </div>
 
+<script src="users.js"></script>
 <script>
 document.getElementById("loginBtn").addEventListener("click", () => {
-    const name = document.getElementById("name").value.trim();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
     const badge = document.getElementById("badge").value.trim();
-    const role = document.getElementById("role").value;
 
-    if (!name || !badge) {
-        alert("Enter name and badge/unit ID.");
+    const roleSelect = document.getElementById("roleSelect").value;
+    const roleManual = document.getElementById("roleManual").value.trim();
+
+    const role = roleManual !== "" ? roleManual : roleSelect;
+
+    if (!username || !password || !badge) {
+        alert("All fields are required.");
         return;
     }
 
-    const user = {
-        name,
-        badge,
-        role,
-        settings: {
-            radioName: "",
-            radioImage: "",
-            pttKey: "KeyT",
-            panicKey: "KeyP",
-            frequency: "154.890",
-            panicButtonLabel: "PANIC",
-            showWhoIsTalking: true
-        }
-    };
+    const users = getUsers();
 
-    localStorage.setItem("currentUser", JSON.stringify(user));
+    const user = users.find(u =>
+        u.username === username &&
+        u.password === password &&
+        u.badge === badge
+    );
+
+    if (!user) {
+        alert("Invalid username, password, or badge.");
+        return;
+    }
+
+    // Save logged-in user
+    setCurrentUser({ ...user, role });
+
+    // Redirect based on role
+    if (role === "admin" && user.isAdmin) {
+        window.location.href = "./admin.html";
+        return;
+    }
 
     if (role === "cad") window.location.href = "./cad.html";
-    if (role === "mdt") window.location.href = "./mdt.html";
-    if (role === "radio") window.location.href = "./radio.html";
-    if (role === "admin") window.location.href = "./admin.html";
+    else if (role === "mdt") window.location.href = "./mdt.html";
+    else if (role === "radio") window.location.href = "./radio.html";
+    else window.location.href = "./cad.html"; // fallback
 });
 </script>
 
