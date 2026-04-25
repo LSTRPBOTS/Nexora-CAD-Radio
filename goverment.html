@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Government Panel</title>
+  <style>
+    body { background:#111; color:white; font-family:Arial; padding:20px; }
+    input, select, button { padding:10px; margin:5px; }
+    .box { background:#222; padding:15px; border:1px solid #333; margin-bottom:20px; }
+  </style>
+</head>
+<body>
+
+<h1>Government Panel</h1>
+<div id="userInfo"></div>
+
+<div class="box">
+  <h2>Add Department</h2>
+  <input id="deptName" placeholder="Department Name (Example: Redwood State Patrol)">
+  <input id="deptAbbr" placeholder="Abbreviation (RSP, LCSO, RCPD)">
+  <button onclick="addDepartment()">Add Department</button>
+</div>
+
+<div class="box">
+  <h2>Add Unit to Department</h2>
+  <select id="deptSelect"></select>
+  <input id="unitName" placeholder="Unit Name (Example: 2A21)">
+  <button onclick="addUnit()">Add Unit</button>
+</div>
+
+<div class="box">
+  <h2>Existing Departments</h2>
+  <div id="deptList"></div>
+</div>
+
+<script src="government.js"></script>
+</body>
+</html>
