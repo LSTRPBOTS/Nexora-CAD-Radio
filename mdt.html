@@ -1,137 +1,186 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MDT</title>
-    <style>
-        body { background:#111; color:#fff; font-family:Arial; }
-        nav { background:#000; padding:10px; }
-        nav a { color:#fff; margin-right:15px; text-decoration:none; }
-        .container { padding:20px; display:flex; gap:20px; }
-        .panel {
-            flex:1; background:#222; padding:15px;
-            border-radius:6px; border:1px solid #333;
-        }
-        .call {
-            border:1px solid #444; padding:8px; margin-top:8px;
-            background:#181818;
-        }
-        button, select {
-            padding:6px; margin-top:6px;
-            background:#333; color:#fff; border:1px solid #555;
-            cursor:pointer;
-        }
-        h2 { margin-top:0; }
-    </style>
+  <title>MDT</title>
+  <style>
+    body {
+      background: #0d0f12;
+      color: white;
+      font-family: Arial;
+      margin: 0;
+      padding: 20px;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background:#000;
+      padding:10px;
+      z-index: 10;
+    }
+
+    nav a {
+      color:#fff;
+      margin-right:15px;
+      text-decoration:none;
+    }
+
+    .panel {
+      background: #111418;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #1e2630;
+      margin-top: 60px;
+    }
+
+    h2 {
+      color: #4aa3ff;
+      margin-top: 0;
+    }
+
+    .callBox {
+      background: #0f1317;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #1f2730;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
 
 <nav>
-    <a href="./index.html">Login</a>
-    <a href="./cad.html">CAD</a>
-    <a href="./mdt.html">MDT</a>
-    <a href="./radio.html">Radio</a>
-    <a href="./admin.html">Admin</a>
-    <a href="./settings.html">Settings</a>
+  <a href="./index.html">Login</a>
+  <a href="./cad.html">CAD</a>
+  <a href="./mdt.html">MDT</a>
+  <a href="./radio.html">Radio</a>
+  <a href="./admin.html">Admin</a>
+  <a href="./settings.html">Settings</a>
+  <a href="./dispatch.html">Dispatch</a>
 </nav>
 
-<div class="container">
-    <div class="panel">
-        <h2>Unit Info</h2>
-        <div id="unitInfo"></div>
-    </div>
+<script>
+// LOGIN PROTECTION
+const rawUser = localStorage.getItem("currentUser");
+if (!rawUser) window.location.href = "./index.html";
+</script>
 
-    <div class="panel">
-        <h2>Assigned Calls</h2>
-        <div id="assignedCalls"></div>
-    </div>
+<audio id="voiceAlert" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b8e1f3c8b.mp3?filename=alert-104024.mp3"></audio>
 
-    <div class="panel">
-        <h2>All Calls</h2>
-        <div id="allCalls"></div>
-    </div>
+<div class="panel">
+  <h2>Active Calls</h2>
+  <div id="callList"></div>
 </div>
 
 <script>
-const rawUser = localStorage.getItem("currentUser");
-if (!rawUser) window.location.href = "./index.html";
-const currentUser = JSON.parse(rawUser);
+let lastCallCount = 0;
 
-document.getElementById("unitInfo").innerText =
-    `Logged in as: ${currentUser.name} (${currentUser.badge})`;
-
-function loadCalls() {
-    return JSON.parse(localStorage.getItem("calls")) || [];
+function getData() {
+  const raw = localStorage.getItem("dispatchData");
+  return raw ? JSON.parse(raw) : { calls: [], units: [], radio: [] };
 }
 
-function renderMDT() {
-    const calls = loadCalls();
-    const myBadge = currentUser.badge;
+function renderCalls() {
+  const data = getData();
+  const box = document.getElementById("callList");
+  box.innerHTML = "";
 
-    const assignedBox = document.getElementById("assignedCalls");
-    const allBox = document.getElementById("allCalls");
+  data.calls.slice().reverse().forEach(c => {
+    box.innerHTML += `
+      <div class="callBox">
+        <b>#${c.id} - ${c.type}</b><br>
+        Location: ${c.location}<br>
+        Priority: ${c.priority}<br>
+        ${c.notes ? "Details: " + c.notes : ""}
+      </div>
+    `;
+  });
+}
 
-    assignedBox.innerHTML = "";
-    allBox.innerHTML = "";
+function playVoiceAlert() {
+  const v = document.getElementById("voiceAlert");
+  v.volume = 1.0;
+  v.play();
+}
 
-    if (!calls.length) {
-        assignedBox.innerHTML = "<em>No calls.</em>";
-        allBox.innerHTML = "<em>No calls.</em>";
-        return;
+function openCallWindow(call) {
+  const win = window.open("", "_blank", "width=450,height=600");
+
+  win.document.write(`
+    <html>
+    <head>
+      <title>Call #${call.id}</title>
+      <style>
+        body {
+          background: #0b0f14;
+          color: #e2e8f0;
+          font-family: Segoe UI, Arial;
+          padding: 20px;
+        }
+        .header {
+          font-size: 22px;
+          font-weight: bold;
+          color: #4aa3ff;
+          margin-bottom: 10px;
+        }
+        .box {
+          background: #11161c;
+          border: 1px solid #1f2a33;
+          padding: 12px;
+          border-radius: 4px;
+          margin-top: 10px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">📟 NEW CALL</div>
+
+      <div class="box">
+        <b>Call ID:</b> ${call.id}<br>
+        <b>Type:</b> ${call.type}<br>
+        <b>Location:</b> ${call.location}<br>
+        <b>Priority:</b> ${call.priority || "3"}<br>
+        <b>Time:</b> ${new Date().toLocaleTimeString()}
+      </div>
+
+      <div class="box">
+        <b>Notes:</b><br>
+        ${call.notes || "No notes provided."}
+      </div>
+
+      <div class="box">
+        <i>Please check your MDT for more information.</i>
+      </div>
+    </body>
+    </html>
+  `);
+
+  win.document.close();
+}
+
+// Detect new calls via storage event
+window.addEventListener("storage", (e) => {
+  if (e.key === "dispatchData") {
+    const data = JSON.parse(e.newValue || '{"calls":[]}');
+    const calls = data.calls || [];
+
+    if (calls.length > lastCallCount) {
+      const newCall = calls[calls.length - 1];
+      playVoiceAlert();
+      openCallWindow(newCall);
     }
 
-    calls.forEach(call => {
-        const block = document.createElement("div");
-        block.className = "call";
-        block.innerHTML = `
-            <strong>Call #${call.id}</strong><br>
-            Type: ${call.type}<br>
-            Location: ${call.location}<br>
-            Status: ${call.status}<br>
-            Units: ${call.units.join(", ") || "None"}<br>
-        `;
+    lastCallCount = calls.length;
+    renderCalls();
+  }
+});
 
-        const isMine = call.units.includes(myBadge);
-
-        if (isMine) {
-            const myBlock = block.cloneNode(true);
-
-            const statusSelect = document.createElement("select");
-            ["Pending","En Route","On Scene","Closed"].forEach(st => {
-                const opt = document.createElement("option");
-                opt.value = st;
-                opt.textContent = st;
-                if (call.status === st) opt.selected = true;
-                statusSelect.appendChild(opt);
-            });
-
-            const btn = document.createElement("button");
-            btn.textContent = "Update Status";
-            btn.onclick = () => {
-                updateCallStatus(call.id, statusSelect.value);
-            };
-
-            myBlock.appendChild(document.createElement("br"));
-            myBlock.appendChild(statusSelect);
-            myBlock.appendChild(btn);
-
-            assignedBox.appendChild(myBlock);
-        }
-
-        allBox.appendChild(block);
-    });
-}
-
-function updateCallStatus(callId, status) {
-    const calls = loadCalls();
-    const idx = calls.findIndex(c => c.id === callId);
-    if (idx === -1) return;
-    calls[idx].status = status;
-    localStorage.setItem("calls", JSON.stringify(calls));
-    renderMDT();
-}
-
-setInterval(renderMDT, 2000);
-renderMDT();
+// Initial load
+const initialData = getData();
+lastCallCount = initialData.calls.length;
+renderCalls();
 </script>
 
 </body>
