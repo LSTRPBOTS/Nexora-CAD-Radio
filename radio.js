@@ -1,6 +1,5 @@
 // radio.js
 
-// Fake user if none stored
 let currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 if (!currentUser) currentUser = { name: "Unit 2A21", badge: "2A21" };
 
@@ -26,6 +25,7 @@ function connectSocket() {
     if (data.type === "audio") {
       const audio = new Audio(data.blob);
       audio.play();
+
       showOverlay(`${data.unitName} (${data.unitBadge})`);
       setTimeout(hideOverlay, 1500);
     }
@@ -87,7 +87,7 @@ function stopTX() {
         unitBadge: currentUser.badge
       }));
 
-      // LOCAL PLAYBACK (post-transmit)
+      // LOCAL POST-TRANSMIT PLAYBACK
       const playback = new Audio(base64);
       playback.play();
     };
