@@ -29,12 +29,12 @@
 <body>
 
 <nav>
-    <a href="index.html">Login</a>
-    <a href="cad.html">CAD</a>
-    <a href="mdt.html">MDT</a>
-    <a href="radio.html">Radio</a>
-    <a href="admin.html">Admin</a>
-    <a href="settings.html">Settings</a>
+    <a href="./index.html">Login</a>
+    <a href="./cad.html">CAD</a>
+    <a href="./mdt.html">MDT</a>
+    <a href="./radio.html">Radio</a>
+    <a href="./admin.html">Admin</a>
+    <a href="./settings.html">Settings</a>
 </nav>
 
 <div class="container">
@@ -65,7 +65,7 @@
 
 <script>
 const rawUser = localStorage.getItem("currentUser");
-if (!rawUser) window.location.href = "index.html";
+if (!rawUser) window.location.href = "./index.html";
 const currentUser = JSON.parse(rawUser);
 
 // ---- CALL STORAGE (SHARED WITH MDT) ----
