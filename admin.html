@@ -1,103 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Nexora Admin</title>
+  <title>Admin Panel</title>
   <style>
-    body { background:#111; color:#fff; font-family:Arial; }
-    .container { max-width:600px; margin:40px auto; background:#222; padding:20px; border-radius:8px; }
-    input, button { width:100%; padding:10px; margin-top:10px; background:#333; color:#fff; border:1px solid #555; }
-    button { cursor:pointer; }
-    .userBox { background:#333; padding:10px; margin-top:10px; border-radius:6px; }
+    body { background:#111; color:white; font-family:Arial; padding:20px; }
+    input, button { padding:10px; margin:5px; }
+    .box { background:#222; padding:15px; border:1px solid #333; margin-bottom:20px; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Admin Panel</h2>
-  <div id="userList"></div>
+<h1>Admin Panel</h1>
+<div id="userInfo"></div>
 
-  <h3>Change My Admin Credentials</h3>
-  <input id="newUsername" placeholder="New admin username">
-  <input id="newPassword" placeholder="New admin password" type="password">
-  <input id="newBadge" placeholder="New admin badge">
-  <button onclick="updateMyAdmin()">Update Admin Account</button>
+<div class="box">
+  <h2>Add Government Official</h2>
+  <input id="govUser" placeholder="Username">
+  <input id="govPass" placeholder="Password">
+  <input id="govBadge" placeholder="Badge Number">
+  <button onclick="addGov()">Add Official</button>
 </div>
 
-<script src="users.js"></script>
-<script>
-const current = getCurrentUser();
-if (!current || !current.isAdmin) {
-  alert("Not authorized");
-  location.href = "index.html";
-}
+<div class="box">
+  <h2>Existing Government Officials</h2>
+  <div id="govList"></div>
+</div>
 
-function renderUsers() {
-  const users = getUsers();
-  const container = document.getElementById("userList");
-  container.innerHTML = "";
-
-  users.forEach((u, index) => {
-    const div = document.createElement("div");
-    div.className = "userBox";
-    div.innerHTML = `
-      <strong>${u.username}</strong><br>
-      Badge: ${u.badge}<br>
-      Admin: ${u.isAdmin ? "YES" : "NO"}<br><br>
-      <button onclick="toggleAdmin(${index})">Toggle Admin</button>
-      <button onclick="deleteUser(${index})">Delete User</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-function toggleAdmin(i) {
-  const users = getUsers();
-  users[i].isAdmin = !users[i].isAdmin;
-  saveUsers(users);
-  renderUsers();
-}
-
-function deleteUser(i) {
-  const users = getUsers();
-  if (users[i].username === current.username && users[i].badge === current.badge) {
-    alert("You cannot delete the currently logged-in admin.");
-    return;
-  }
-  users.splice(i, 1);
-  saveUsers(users);
-  renderUsers();
-}
-
-function updateMyAdmin() {
-  const newUsername = document.getElementById("newUsername").value.trim();
-  const newPassword = document.getElementById("newPassword").value.trim();
-  const newBadge = document.getElementById("newBadge").value.trim();
-
-  if (!newUsername || !newPassword || !newBadge) {
-    alert("All fields required");
-    return;
-  }
-
-  let users = getUsers();
-  const idx = users.findIndex(u =>
-    u.username === current.username &&
-    u.badge === current.badge
-  );
-
-  users[idx].username = newUsername;
-  users[idx].password = newPassword;
-  users[idx].badge = newBadge;
-  users[idx].isAdmin = true;
-
-  saveUsers(users);
-  setCurrentUser(users[idx]);
-
-  alert("Admin credentials updated");
-  renderUsers();
-}
-
-renderUsers();
-</script>
-
+<script src="admin.js"></script>
 </body>
 </html>
