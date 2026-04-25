@@ -1,35 +1,49 @@
-<h2>Create Account</h2>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nexora Register</title>
+</head>
+<body>
+  <h2>Create Account</h2>
 
-<input id="username" placeholder="Username">
-<input id="password" placeholder="Password" type="password">
-<input id="badge" placeholder="Badge Number">
+  <input id="username" placeholder="Username">
+  <input id="password" placeholder="Password" type="password">
+  <input id="badge" placeholder="Badge Number">
 
-<button onclick="register()">Register</button>
+  <button onclick="register()">Register</button>
 
-<script>
-function register() {
-    let users = JSON.parse(localStorage.getItem("users")) || [];
+  <script src="users.js"></script>
+  <script>
+    initDefaultAdmin();
 
-    const user = {
-        username: username.value.trim(),
-        password: password.value.trim(),
-        badge: badge.value.trim()
-    };
+    function register() {
+      let users = getUsers();
 
-    if (!user.username || !user.password || !user.badge) {
-        alert("All fields required");
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const badge = document.getElementById("badge").value.trim();
+
+      if (!username || !password || !badge) {
+        alert("All fields are required");
         return;
-    }
+      }
 
-    if (users.find(u => u.username === user.username)) {
+      if (users.find(u => u.username === username)) {
         alert("Username already exists");
         return;
+      }
+
+      users.push({
+        username,
+        password,
+        badge,
+        isAdmin: false
+      });
+
+      saveUsers(users);
+      alert("Account created");
+      location.href = "index.html";
     }
-
-    users.push(user);
-    localStorage.setItem("users", JSON.stringify(users));
-
-    alert("Account created!");
-    location.href = "index.html";
-}
-</script>
+  </script>
+</body>
+</html>
