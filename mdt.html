@@ -1,194 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MDT</title>
+  <title>Officer MDT</title>
   <style>
-    body {
-      background: #0d0f12;
-      color: white;
-      font-family: Arial;
-      margin: 0;
-      padding: 20px;
-    }
-
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background:#000;
-      padding:10px;
-      z-index: 10;
-    }
-
-    nav a {
-      color:#fff;
-      margin-right:15px;
-      text-decoration:none;
-    }
-
-    .panel {
-      background: #111418;
-      padding: 20px;
-      border-radius: 10px;
-      border: 2px solid #1e2630;
-      margin-top: 60px;
-    }
-
-    .callBox {
-      background: #0f1317;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #1f2730;
-      margin-bottom: 10px;
-    }
+    body { background:#111; color:white; font-family:Arial; padding:20px; }
   </style>
 </head>
 <body>
 
-<nav>
-  <a href="./index.html">Login</a>
-  <a href="./cad.html">CAD</a>
-  <a href="./mdt.html">MDT</a>
-  <a href="./radio.html">Radio</a>
-  <a href="./admin.html">Admin</a>
-  <a href="./settings.html">Settings</a>
-</nav>
+<h1>Officer MDT</h1>
+<div id="userInfo"></div>
 
 <script>
-// LOGIN PROTECTION
-const rawUser = localStorage.getItem("currentUser");
-if (!rawUser) window.location.href = "./index.html";
-</script>
+const user = JSON.parse(localStorage.getItem("currentUser"));
+if (!user || user.role !== "Officer") window.location.href = "./index.html";
 
-<audio id="voiceAlert" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b8e1f3c8b.mp3?filename=alert-104024.mp3"></audio>
-
-<div class="panel">
-  <h2>Active Calls</h2>
-  <div id="callList"></div>
-</div>
-
-<script>
-let lastCallCount = 0;
-
-function loadCalls() {
-  return JSON.parse(localStorage.getItem("calls")) || [];
-}
-
-function renderCalls() {
-  const calls = loadCalls();
-  const box = document.getElementById("callList");
-  box.innerHTML = "";
-
-  calls.slice().reverse().forEach(c => {
-    box.innerHTML += `
-      <div class="callBox">
-        <b>#${c.id} - ${c.type}</b><br>
-        Location: ${c.location}<br>
-        Priority: ${c.priority}<br>
-        Status: ${c.status}<br>
-        ${c.description ? "Description: " + c.description : ""}
-      </div>
-    `;
-  });
-}
-
-function playVoiceAlert() {
-  const v = document.getElementById("voiceAlert");
-  v.volume = 1.0;
-  v.play();
-}
-
-function speakCall(call) {
-  const msg = new SpeechSynthesisUtterance(
-    `New call. ${call.type}. At ${call.location}. Priority ${call.priority}.`
-  );
-  msg.rate = 1;
-  msg.pitch = 1;
-  msg.volume = 1;
-
-  const voices = speechSynthesis.getVoices();
-  const male = voices.find(v => v.name.toLowerCase().includes("male"));
-  if (male) msg.voice = male;
-
-  speechSynthesis.speak(msg);
-}
-
-function openCallWindow(call) {
-  const win = window.open("", "_blank", "width=450,height=600");
-
-  win.document.write(`
-    <html>
-    <head>
-      <title>Call #${call.id}</title>
-      <style>
-        body {
-          background: #0b0f14;
-          color: #e2e8f0;
-          font-family: Segoe UI, Arial;
-          padding: 20px;
-        }
-        .header {
-          font-size: 22px;
-          font-weight: bold;
-          color: #4aa3ff;
-          margin-bottom: 10px;
-        }
-        .box {
-          background: #11161c;
-          border: 1px solid #1f2a33;
-          padding: 12px;
-          border-radius: 4px;
-          margin-top: 10px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="header">📟 NEW CALL</div>
-
-      <div class="box">
-        <b>Call ID:</b> ${call.id}<br>
-        <b>Type:</b> ${call.type}<br>
-        <b>Location:</b> ${call.location}<br>
-        <b>Priority:</b> ${call.priority}<br>
-        <b>Status:</b> ${call.status}<br>
-        <b>Time:</b> ${new Date().toLocaleTimeString()}
-      </div>
-
-      <div class="box">
-        <b>Description:</b><br>
-        ${call.description || "No description provided."}
-      </div>
-
-      <div class="box">
-        <i>Please check your MDT for more information.</i>
-      </div>
-    </body>
-    </html>
-  `);
-
-  win.document.close();
-}
-
-// Polling for new calls (works even if CAD tab is closed)
-setInterval(() => {
-  const calls = loadCalls();
-
-  if (calls.length > lastCallCount) {
-    const newCall = calls[calls.length - 1];
-    playVoiceAlert();
-    speakCall(newCall);
-    openCallWindow(newCall);
-  }
-
-  lastCallCount = calls.length;
-  renderCalls();
-}, 1000);
-
-// Initial load
-const initialCalls = loadCalls();
-lastCallCount = initialCalls.length;
-renderCalls();
+document.getElementById("userInfo").innerText =
+  `Logged in as: ${user.name} (${user.badge})`;
 </script>
 
 </body>
