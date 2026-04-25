@@ -51,6 +51,8 @@
 
 <script src="users.js"></script>
 <script>
+initDefaultAdmin();
+
 document.getElementById("loginBtn").addEventListener("click", () => {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -79,10 +81,8 @@ document.getElementById("loginBtn").addEventListener("click", () => {
         return;
     }
 
-    // Save logged-in user
     setCurrentUser({ ...user, role });
 
-    // Redirect based on role
     if (role === "admin" && user.isAdmin) {
         window.location.href = "./admin.html";
         return;
@@ -91,7 +91,7 @@ document.getElementById("loginBtn").addEventListener("click", () => {
     if (role === "cad") window.location.href = "./cad.html";
     else if (role === "mdt") window.location.href = "./mdt.html";
     else if (role === "radio") window.location.href = "./radio.html";
-    else window.location.href = "./cad.html"; // fallback
+    else window.location.href = "./cad.html";
 });
 </script>
 
