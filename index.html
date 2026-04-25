@@ -20,12 +20,12 @@
 <body>
 
 <nav>
-    <a href="index.html">Login</a>
-    <a href="cad.html">CAD</a>
-    <a href="mdt.html">MDT</a>
-    <a href="radio.html">Radio</a>
-    <a href="admin.html">Admin</a>
-    <a href="settings.html">Settings</a>
+    <a href="./index.html">Login</a>
+    <a href="./cad.html">CAD</a>
+    <a href="./mdt.html">MDT</a>
+    <a href="./radio.html">Radio</a>
+    <a href="./admin.html">Admin</a>
+    <a href="./settings.html">Settings</a>
 </nav>
 
 <div class="container">
@@ -76,10 +76,10 @@ document.getElementById("loginBtn").addEventListener("click", () => {
 
     localStorage.setItem("currentUser", JSON.stringify(user));
 
-    if (role === "cad") window.location.href = "cad.html";
-    if (role === "mdt") window.location.href = "mdt.html";
-    if (role === "radio") window.location.href = "radio.html";
-    if (role === "admin") window.location.href = "admin.html";
+    if (role === "cad") window.location.href = "./cad.html";
+    if (role === "mdt") window.location.href = "./mdt.html";
+    if (role === "radio") window.location.href = "./radio.html";
+    if (role === "admin") window.location.href = "./admin.html";
 });
 </script>
 
