@@ -35,11 +35,6 @@
       margin-top: 60px;
     }
 
-    h2 {
-      color: #4aa3ff;
-      margin-top: 0;
-    }
-
     .callBox {
       background: #0f1317;
       padding: 10px;
@@ -58,7 +53,6 @@
   <a href="./radio.html">Radio</a>
   <a href="./admin.html">Admin</a>
   <a href="./settings.html">Settings</a>
-  <a href="./dispatch.html">Dispatch</a>
 </nav>
 
 <script>
@@ -67,6 +61,7 @@ const rawUser = localStorage.getItem("currentUser");
 if (!rawUser) window.location.href = "./index.html";
 </script>
 
+<!-- VOICE ALERT -->
 <audio id="voiceAlert" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b8e1f3c8b.mp3?filename=alert-104024.mp3"></audio>
 
 <div class="panel">
@@ -77,34 +72,38 @@ if (!rawUser) window.location.href = "./index.html";
 <script>
 let lastCallCount = 0;
 
-function getData() {
-  const raw = localStorage.getItem("dispatchData");
-  return raw ? JSON.parse(raw) : { calls: [], units: [], radio: [] };
+// Load calls from CAD
+function loadCalls() {
+  return JSON.parse(localStorage.getItem("calls")) || [];
 }
 
+// Render call list
 function renderCalls() {
-  const data = getData();
+  const calls = loadCalls();
   const box = document.getElementById("callList");
   box.innerHTML = "";
 
-  data.calls.slice().reverse().forEach(c => {
+  calls.slice().reverse().forEach(c => {
     box.innerHTML += `
       <div class="callBox">
         <b>#${c.id} - ${c.type}</b><br>
         Location: ${c.location}<br>
         Priority: ${c.priority}<br>
-        ${c.notes ? "Details: " + c.notes : ""}
+        Status: ${c.status}<br>
+        ${c.description ? "Description: " + c.description : ""}
       </div>
     `;
   });
 }
 
+// Play voice alert
 function playVoiceAlert() {
   const v = document.getElementById("voiceAlert");
   v.volume = 1.0;
   v.play();
 }
 
+// Open new call window
 function openCallWindow(call) {
   const win = window.open("", "_blank", "width=450,height=600");
 
@@ -141,13 +140,14 @@ function openCallWindow(call) {
         <b>Call ID:</b> ${call.id}<br>
         <b>Type:</b> ${call.type}<br>
         <b>Location:</b> ${call.location}<br>
-        <b>Priority:</b> ${call.priority || "3"}<br>
+        <b>Priority:</b> ${call.priority}<br>
+        <b>Status:</b> ${call.status}<br>
         <b>Time:</b> ${new Date().toLocaleTimeString()}
       </div>
 
       <div class="box">
-        <b>Notes:</b><br>
-        ${call.notes || "No notes provided."}
+        <b>Description:</b><br>
+        ${call.description || "No description provided."}
       </div>
 
       <div class="box">
@@ -160,26 +160,23 @@ function openCallWindow(call) {
   win.document.close();
 }
 
-// Detect new calls via storage event
-window.addEventListener("storage", (e) => {
-  if (e.key === "dispatchData") {
-    const data = JSON.parse(e.newValue || '{"calls":[]}');
-    const calls = data.calls || [];
+// Detect new calls
+window.addEventListener("storage", () => {
+  const calls = loadCalls();
 
-    if (calls.length > lastCallCount) {
-      const newCall = calls[calls.length - 1];
-      playVoiceAlert();
-      openCallWindow(newCall);
-    }
-
-    lastCallCount = calls.length;
-    renderCalls();
+  if (calls.length > lastCallCount) {
+    const newCall = calls[calls.length - 1];
+    playVoiceAlert();
+    openCallWindow(newCall);
   }
+
+  lastCallCount = calls.length;
+  renderCalls();
 });
 
 // Initial load
-const initialData = getData();
-lastCallCount = initialData.calls.length;
+const initialCalls = loadCalls();
+lastCallCount = initialCalls.length;
 renderCalls();
 </script>
 
