@@ -1,55 +1,113 @@
-const user = JSON.parse(localStorage.getItem("currentUser"));
-if (!user || user.role !== "Government") window.location.href = "./index.html";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nexora Government Panel</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      margin:0;
+      background:#0d0f12;
+      color:#ffffff;
+      font-family:Arial, sans-serif;
+      padding:20px;
+      box-sizing:border-box;
+    }
 
-document.getElementById("userInfo").innerText =
-  `Logged in as: ${user.name} (${user.badge})`;
+    h1, h2, h3 {
+      margin:10px 0;
+    }
 
-let departments = JSON.parse(localStorage.getItem("departments")) || {};
+    label {
+      font-size:13px;
+      color:#9fa8b8;
+      margin-top:6px;
+      display:block;
+    }
 
-function save() {
-  localStorage.setItem("departments", JSON.stringify(departments));
-  loadDepartments();
-}
+    input, select, button, textarea {
+      width:100%;
+      padding:8px;
+      margin-top:4px;
+      background:#1c222b;
+      color:#ffffff;
+      border:1px solid #2a323d;
+      font-size:14px;
+      box-sizing:border-box;
+    }
 
-function addDepartment() {
-  const name = document.getElementById("deptName").value.trim();
-  const abbr = document.getElementById("deptAbbr").value.trim();
+    button {
+      background:#4aa3ff;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+      margin-top:8px;
+    }
 
-  if (!name || !abbr) return alert("Enter name + abbreviation.");
+    button:active {
+      background:#2f7fcc;
+    }
 
-  departments[abbr] = { name, units: [] };
-  save();
-}
+    .zoneBlock {
+      border:1px solid #2a323d;
+      padding:10px;
+      margin-top:10px;
+    }
 
-function addUnit() {
-  const abbr = document.getElementById("deptSelect").value;
-  const unit = document.getElementById("unitName").value.trim();
+    .lockedLabel {
+      font-size:11px;
+      color:#ff7a7a;
+      margin-left:4px;
+    }
 
-  if (!unit) return alert("Enter a unit name.");
+    .flexRow {
+      display:flex;
+      gap:10px;
+    }
 
-  departments[abbr].units.push(unit);
-  save();
-}
+    .flexRow > div {
+      flex:1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Nexora Government Panel</h1>
+  <p style="font-size:13px;color:#c3cad6;">
+    This panel controls the global zone layout, including locked Zone 1. Changes are saved globally and applied to radios when they click "Sync" on their side.
+  </p>
 
-function loadDepartments() {
-  const deptSelect = document.getElementById("deptSelect");
-  const deptList = document.getElementById("deptList");
+  <h2>Zones & Channels</h2>
+  <div id="zonesContainer"></div>
 
-  deptSelect.innerHTML = "";
-  deptList.innerHTML = "";
+  <button id="addZoneBtn">Add New Zone</button>
 
-  for (const abbr in departments) {
-    const dept = departments[abbr];
+  <h3>Lockdown / Frequency Control</h3>
+  <p style="font-size:13px;color:#c3cad6;">
+    Use this to quickly lock a specific zone/channel or frequency if something goes wrong.
+  </p>
 
-    const opt = document.createElement("option");
-    opt.value = abbr;
-    opt.innerText = `${abbr} — ${dept.name}`;
-    deptSelect.appendChild(opt);
+  <div class="flexRow">
+    <div>
+      <label>Zone ID to Lock</label>
+      <input id="lockZoneIdInput" type="number" min="1" placeholder="e.g. 2">
+    </div>
+    <div>
+      <label>Channel Index to Lock (1-based, optional)</label>
+      <input id="lockChanIndexInput" type="number" min="1" placeholder="e.g. 1">
+    </div>
+  </div>
 
-    const div = document.createElement("div");
-    div.innerHTML = `<b>${abbr}</b>: ${dept.name}<br>Units: ${dept.units.join(", ")}`;
-    deptList.appendChild(div);
-  }
-}
+  <label>Optional: Frequency to Tag in Notes</label>
+  <input id="lockFreqNoteInput" placeholder="e.g. 155.250 lockdown">
 
-loadDepartments();
+  <button id="lockdownBtn">Lock / Tag</button>
+
+  <h3>Save & Sync</h3>
+  <button id="saveGovBtn">Save Government Layout</button>
+
+  <p style="font-size:13px;color:#c3cad6;">
+    Radios will pull this layout when they click "Sync" on their radio page.
+  </p>
+
+  <script src="government.js"></script>
+</body>
+</html>
