@@ -1,6 +1,4 @@
-// EXPECTED: backend injects these before this script runs
-// window.NEXORA_ACTIVE_USER = { name, callsign, departmentAbbr }
-// window.NEXORA_ZONES = [ { id, name, locked, mode, channels:[...] }, ... ]
+// ---------------- GLOBAL STATE ----------------
 
 let zones = [];
 let activeZone = null;
@@ -8,55 +6,236 @@ let activeChannel = null;
 let activeFreq = null;
 let activeMode = "ANALOG"; // "ANALOG" | "DMR" | "P25"
 
-let identityEl, zoneSelect, channelSelect, modeBadge, freqDisplay, modeFields;
-let freqInput, setFreqBtn, statusText, pttBtn;
-
 let radioBus = new BroadcastChannel("nexora_radio");
 
 let mediaStream = null;
 let mediaRecorder = null;
 let chunks = [];
 
-// ---------- INIT ----------
+// ---------------- INIT ----------------
 
 window.addEventListener("load", () => {
-  identityEl    = document.getElementById("identity");
-  zoneSelect    = document.getElementById("zoneSelect");
-  channelSelect = document.getElementById("channelSelect");
-  modeBadge     = document.getElementById("modeBadge");
-  freqDisplay   = document.getElementById("freqDisplay");
-  modeFields    = document.getElementById("modeFields");
-  freqInput     = document.getElementById("freqInput");
-  setFreqBtn    = document.getElementById("setFreqBtn");
-  statusText    = document.getElementById("statusText");
-  pttBtn        = document.getElementById("ptt");
+  // Radio UI
+  const zoneSelect    = document.getElementById("zoneSelect");
+  const channelSelect = document.getElementById("channelSelect");
+  const modeBadge     = document.getElementById("modeBadge");
+  const freqDisplay   = document.getElementById("freqDisplay");
+  const modeFields    = document.getElementById("modeFields");
+  const freqInput     = document.getElementById("freqInput");
+  const setFreqBtn    = document.getElementById("setFreqBtn");
+  const pttBtn        = document.getElementById("ptt");
+  const statusText    = document.getElementById("statusText");
 
-  const user = window.NEXORA_ACTIVE_USER || null;
-  if (user) {
-    identityEl.innerText = `${user.departmentAbbr} – ${user.callsign} – ${user.name}`;
-  } else {
-    identityEl.innerText = "NO USER (inject NEXORA_ACTIVE_USER)";
+  // Setup UI
+  const zoneCountInput   = document.getElementById("zoneCountInput");
+  const zoneConfigArea   = document.getElementById("zoneConfigArea");
+  const generateZonesBtn = document.getElementById("generateZonesBtn");
+  const applySetupBtn    = document.getElementById("applySetupBtn");
+
+  // Gov monitor
+  const activeRadioCountEl = document.getElementById("activeRadioCount");
+  const lastTxEl           = document.getElementById("lastTx");
+  const lastFreqEl         = document.getElementById("lastFreq");
+  const lastModeEl         = document.getElementById("lastMode");
+
+  // ----- SETUP PANEL LOGIC -----
+
+  generateZonesBtn.addEventListener("click", () => {
+    const count = parseInt(zoneCountInput.value);
+    if (!count || count < 1) return;
+
+    zoneConfigArea.innerHTML = "";
+
+    for (let i = 1; i <= count; i++) {
+      const div = document.createElement("div");
+      div.style.marginTop = "20px";
+
+      const lockedLabel = (i === 1)
+        ? "(LOCKED – Government Only)"
+        : "(Unlocked)";
+
+      div.innerHTML = `
+        <h4>Zone ${i} ${lockedLabel}</h4>
+
+        <label>Zone Name</label>
+        <input id="zoneName_${i}" placeholder="e.g. RCPD PRIMARY">
+
+        <label>Mode</label>
+        <select id="zoneMode_${i}">
+          <option value="ANALOG">Analog (fuzzy)</option>
+          <option value="DMR">DMR / MotoTRBO (digital)</option>
+          <option value="P25">P25 (clean)</option>
+        </select>
+
+        <label>Number of Channels</label>
+        <input id="chanCount_${i}" type="number" min="1" placeholder="e.g. 5">
+
+        <div id="chanArea_${i}"></div>
+
+        <button type="button" onclick="generateChannelInputs(${i})">Create Channels</button>
+      `;
+
+      zoneConfigArea.appendChild(div);
+    }
+  });
+
+  applySetupBtn.addEventListener("click", () => {
+    zones = [];
+
+    const zoneCount = parseInt(zoneCountInput.value);
+    if (!zoneCount || zoneCount < 1) return;
+
+    for (let z = 1; z <= zoneCount; z++) {
+      const zoneNameEl = document.getElementById(`zoneName_${z}`);
+      const zoneModeEl = document.getElementById(`zoneMode_${z}`);
+      const chanCountEl = document.getElementById(`chanCount_${z}`);
+
+      if (!zoneModeEl || !chanCountEl) continue;
+
+      const chanCount = parseInt(chanCountEl.value) || 0;
+
+      const zoneObj = {
+        id: z,
+        name: (zoneNameEl && zoneNameEl.value) || `Zone ${z}`,
+        locked: (z === 1), // Zone 1 = government locked
+        mode: zoneModeEl.value || "ANALOG",
+        channels: []
+      };
+
+      for (let c = 1; c <= chanCount; c++) {
+        const name = getVal(`chanName_${z}_${c}`);
+        const freq = getVal(`chanFreq_${z}_${c}`);
+        const pl   = getVal(`chanPL_${z}_${c}`);
+        const nac  = getVal(`chanNAC_${z}_${c}`);
+        const cc   = getVal(`chanCC_${z}_${c}`);
+        const slot = getVal(`chanSlot_${z}_${c}`);
+        const tg   = getVal(`chanTG_${z}_${c}`);
+        const enc  = getVal(`chanENC_${z}_${c}`);
+
+        zoneObj.channels.push({
+          name: name || `Channel ${c}`,
+          freq: freq || "000.000",
+          pl,
+          nac,
+          cc,
+          slot,
+          tg,
+          enc: enc === "true"
+        });
+      }
+
+      zones.push(zoneObj);
+    }
+
+    populateZones();
+  });
+
+  function getVal(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : "";
   }
 
-  zones = Array.isArray(window.NEXORA_ZONES) ? window.NEXORA_ZONES : [];
-  populateZones();
+  // Expose channel generator globally for inline onclick
+  window.generateChannelInputs = function(zoneId) {
+    const chanCountEl = document.getElementById(`chanCount_${zoneId}`);
+    const area = document.getElementById(`chanArea_${zoneId}`);
+    if (!chanCountEl || !area) return;
 
-  zoneSelect.addEventListener("change", onZoneChange);
-  channelSelect.addEventListener("change", onChannelChange);
-  setFreqBtn.addEventListener("click", setCustomFrequency);
+    const count = parseInt(chanCountEl.value);
+    if (!count || count < 1) return;
 
-  pttBtn.addEventListener("mousedown", startTx);
-  pttBtn.addEventListener("mouseup", stopTx);
-  pttBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startTx(); });
-  pttBtn.addEventListener("touchend", (e) => { e.preventDefault(); stopTx(); });
+    area.innerHTML = "";
 
-  radioBus.onmessage = onRadioMessage;
+    for (let c = 1; c <= count; c++) {
+      const div = document.createElement("div");
+      div.style.marginTop = "10px";
+
+      div.innerHTML = `
+        <label>Channel ${c} Name</label>
+        <input id="chanName_${zoneId}_${c}" placeholder="e.g. RCPD Dispatch">
+
+        <label>Frequency</label>
+        <input id="chanFreq_${zoneId}_${c}" placeholder="Any frequency string">
+
+        <label>Analog PL/DPL</label>
+        <input id="chanPL_${zoneId}_${c}" placeholder="e.g. 192.8 or D023">
+
+        <label>P25 NAC</label>
+        <input id="chanNAC_${zoneId}_${c}" placeholder="e.g. 293">
+
+        <label>DMR Color Code</label>
+        <input id="chanCC_${zoneId}_${c}" placeholder="e.g. 1">
+
+        <label>DMR Slot</label>
+        <input id="chanSlot_${zoneId}_${c}" placeholder="1 or 2">
+
+        <label>DMR Talkgroup</label>
+        <input id="chanTG_${zoneId}_${c}" placeholder="e.g. 1001">
+
+        <label>Encryption</label>
+        <select id="chanENC_${zoneId}_${c}">
+          <option value="false">Off</option>
+          <option value="true">On</option>
+        </select>
+      `;
+
+      area.appendChild(div);
+    }
+  };
+
+  // ----- RADIO UI LOGIC -----
+
+  zoneSelect.addEventListener("change", () => onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields));
+  channelSelect.addEventListener("change", () => onChannelChange(channelSelect, freqDisplay, modeBadge, modeFields));
+
+  setFreqBtn.addEventListener("click", () => {
+    if (!activeZone || activeZone.locked) return;
+    const val = freqInput.value.trim();
+    if (!val) return;
+    activeFreq = val;
+    freqDisplay.innerText = `Freq: ${activeFreq}`;
+  });
+
+  pttBtn.addEventListener("mousedown", () => startTx(statusText));
+  pttBtn.addEventListener("mouseup",   () => stopTx(statusText));
+  pttBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startTx(statusText); });
+  pttBtn.addEventListener("touchend",   (e) => { e.preventDefault(); stopTx(statusText); });
+
+  // ----- CROSS-TAB + GOV MONITOR -----
+
+  radioBus.onmessage = (event) => {
+    const msg = event.data;
+    if (!msg || !msg.freq || !msg.mode || !msg.url) return;
+
+    // Update monitor
+    activeRadioCountEl.innerText = "1+";
+    lastTxEl.innerText   = new Date().toLocaleTimeString();
+    lastFreqEl.innerText = msg.freq;
+    lastModeEl.innerText = msg.mode;
+
+    // Only hear if freq + mode match
+    if (msg.freq === activeFreq && msg.mode === activeMode) {
+      playProfiledAudio(msg.url, msg.mode);
+    }
+  };
+
+  // Initial empty state
+  freqDisplay.innerText = "Freq: ---";
+  modeFields.innerHTML = "";
 });
 
-// ---------- ZONES & CHANNELS ----------
+// ---------------- RADIO HELPERS ----------------
 
 function populateZones() {
+  const zoneSelect    = document.getElementById("zoneSelect");
+  const channelSelect = document.getElementById("channelSelect");
+  const freqInput     = document.getElementById("freqInput");
+  const freqDisplay   = document.getElementById("freqDisplay");
+  const modeBadge     = document.getElementById("modeBadge");
+  const modeFields    = document.getElementById("modeFields");
+
   zoneSelect.innerHTML = "";
+
   zones.forEach((z, i) => {
     const opt = document.createElement("option");
     opt.value = i;
@@ -66,14 +245,14 @@ function populateZones() {
 
   if (zones.length > 0) {
     zoneSelect.value = 0;
-    onZoneChange();
+    onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields);
   } else {
     freqDisplay.innerText = "Freq: ---";
     modeFields.innerHTML = "";
   }
 }
 
-function onZoneChange() {
+function onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields) {
   const zIndex = parseInt(zoneSelect.value, 10);
   activeZone = zones[zIndex];
 
@@ -87,16 +266,15 @@ function onZoneChange() {
     channelSelect.appendChild(opt);
   });
 
+  freqInput.disabled = !!activeZone.locked;
+
   if (activeZone.channels.length > 0) {
     channelSelect.value = 0;
-    onChannelChange();
+    onChannelChange(channelSelect, freqDisplay, modeBadge, modeFields);
   }
-
-  // lock / unlock frequency input
-  freqInput.disabled = !!activeZone.locked;
 }
 
-function onChannelChange() {
+function onChannelChange(channelSelect, freqDisplay, modeBadge, modeFields) {
   const cIndex = parseInt(channelSelect.value, 10);
   if (!activeZone || !activeZone.channels[cIndex]) return;
 
@@ -105,15 +283,13 @@ function onChannelChange() {
   activeMode    = (activeZone.mode || "ANALOG").toUpperCase();
 
   freqDisplay.innerText = `Freq: ${activeFreq}`;
-  updateModeBadge(activeMode);
-  updateModeFields(activeMode, activeChannel);
+  updateModeBadge(activeMode, modeBadge);
+  updateModeFields(activeMode, activeChannel, modeFields);
 
   playChannelName(activeChannel.name);
 }
 
-// ---------- MODE UI ----------
-
-function updateModeBadge(mode) {
+function updateModeBadge(mode, modeBadge) {
   modeBadge.className = "";
   let label = "";
 
@@ -133,27 +309,25 @@ function updateModeBadge(mode) {
   modeBadge.innerText = label;
 }
 
-function updateModeFields(mode, ch) {
+function updateModeFields(mode, ch, modeFields) {
   modeFields.innerHTML = "";
 
   if (mode === "ANALOG") {
-    const pl = ch.pl || ch.ctcss || "---";
-    const dpl = ch.dpl || ch.dcs || "---";
+    const pl  = ch.pl  || "---";
     modeFields.innerHTML = `
-      <div>PL / CTCSS: ${pl}</div>
-      <div>DPL / DCS: ${dpl}</div>
+      <div>PL / DPL: ${pl}</div>
     `;
   } else if (mode === "DMR") {
-    const cc   = ch.cc   ?? "---";
-    const slot = ch.slot ?? "---";
-    const tg   = ch.tg   ?? "---";
+    const cc   = ch.cc   || "---";
+    const slot = ch.slot || "---";
+    const tg   = ch.tg   || "---";
     modeFields.innerHTML = `
       <div>Color Code: ${cc}</div>
       <div>Time Slot: ${slot}</div>
       <div>Talkgroup: ${tg}</div>
     `;
   } else if (mode === "P25") {
-    const nac = ch.nac ?? "---";
+    const nac = ch.nac || "---";
     const enc = ch.enc ? "ENABLED" : "OFF";
     modeFields.innerHTML = `
       <div>NAC: ${nac}</div>
@@ -161,19 +335,6 @@ function updateModeFields(mode, ch) {
     `;
   }
 }
-
-// ---------- CUSTOM FREQUENCY (UNLOCKED ZONES) ----------
-
-function setCustomFrequency() {
-  if (!activeZone || activeZone.locked) return;
-  const val = freqInput.value.trim();
-  if (!val) return;
-
-  activeFreq = val;
-  freqDisplay.innerText = `Freq: ${activeFreq}`;
-}
-
-// ---------- CHANNEL ANNOUNCEMENT ----------
 
 function playChannelName(name) {
   if (!window.speechSynthesis) return;
@@ -185,19 +346,19 @@ function playChannelName(name) {
   speechSynthesis.speak(utter);
 }
 
-// ---------- PTT / AUDIO / CROSS-TAB ----------
+// ---------------- PTT / AUDIO ----------------
 
 async function ensureMic() {
   if (mediaStream) return;
   mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 }
 
-async function startTx() {
+async function startTx(statusText) {
   if (!activeFreq || !activeMode) return;
 
   try {
     await ensureMic();
-  } catch (e) {
+  } catch {
     statusText.innerText = "Mic blocked – allow microphone access.";
     return;
   }
@@ -211,8 +372,8 @@ async function startTx() {
     const blob = new Blob(chunks, { type: "audio/webm" });
     const url  = URL.createObjectURL(blob);
 
-    // Local playback with mode profile
-    playTxAudio(url, activeMode);
+    // Local playback
+    playProfiledAudio(url, activeMode);
 
     // Broadcast to other tabs
     radioBus.postMessage({
@@ -226,43 +387,15 @@ async function startTx() {
   statusText.innerText = `TX ${activeMode} @ ${activeFreq}`;
 }
 
-function stopTx() {
+function stopTx(statusText) {
   if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
     statusText.innerText = "Idle";
   }
 }
 
-function onRadioMessage(event) {
-  const msg = event.data;
-  if (!msg || !msg.freq || !msg.mode || !msg.url) return;
-
-  // Only hear if freq + mode match
-  if (msg.freq === activeFreq && msg.mode === activeMode) {
-    playRxAudio(msg.url, msg.mode);
-  }
-}
-
-// ---------- AUDIO PROFILES ----------
-
-function playTxAudio(url, mode) {
-  // For now, TX and RX use same profile; you can split later if you want
-  playProfiledAudio(url, mode);
-}
-
-function playRxAudio(url, mode) {
-  playProfiledAudio(url, mode);
-}
-
 function playProfiledAudio(url, mode) {
   const audio = new Audio(url);
-
-  // Hooks for future processing:
-  // - Analog: add noise / static
-  // - DMR: add digital crunch / artifacts
-  // - P25: keep clean
-
-  // Basic example using Web Audio API (placeholder for your later tweaks)
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const src = ctx.createMediaElementSource(audio);
   const gain = ctx.createGain();
@@ -272,18 +405,18 @@ function playProfiledAudio(url, mode) {
     biquad.type = "lowpass";
     biquad.frequency.value = 3400;
     gain.gain.value = 1.0;
-    // You can add a noise node here later for hiss/static
+    // hook: add noise/hiss later if you want
   } else if (mode === "DMR") {
     biquad.type = "bandpass";
     biquad.frequency.value = 2000;
     biquad.Q.value = 1.5;
     gain.gain.value = 1.0;
-    // Later: add bitcrusher / distortion for digital crunch
+    // hook: add digital crunch later
   } else if (mode === "P25") {
     biquad.type = "highpass";
     biquad.frequency.value = 300;
     gain.gain.value = 1.0;
-    // Keep it clean
+    // keep clean
   }
 
   src.connect(biquad);
