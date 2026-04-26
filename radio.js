@@ -1,10 +1,13 @@
-// ---------------- GLOBAL STATE ----------------
+// ---------- GLOBAL STATE ----------
 
-let zones = [];
+let govZones = [];   // from government.js (global)
+let userZones = [];  // per-user (localStorage)
+let mergedZones = []; // gov + user (gov wins on locked zones)
+
 let activeZone = null;
 let activeChannel = null;
 let activeFreq = null;
-let activeMode = "ANALOG"; // "ANALOG" | "DMR" | "P25"
+let activeMode = "ANALOG";
 
 let radioBus = new BroadcastChannel("nexora_radio");
 
@@ -12,10 +15,34 @@ let mediaStream = null;
 let mediaRecorder = null;
 let chunks = [];
 
-// ---------------- INIT ----------------
+// ---------- CONSTANTS / STORAGE KEYS ----------
+
+const LS_USER_ZONES_KEY = "nexora_user_zones";
+const LS_GOV_ZONES_KEY  = "nexora_gov_zones"; // government writes this
+const GOV_DEFAULT_ZONES = [
+  {
+    id: 1,
+    name: "Zone 1 – GOV PRIMARY",
+    locked: true,
+    mode: "P25",
+    channels: [
+      {
+        name: "GOV Dispatch",
+        freq: "155.000",
+        pl: "",
+        nac: "293",
+        cc: "",
+        slot: "",
+        tg: "",
+        enc: false
+      }
+    ]
+  }
+];
+
+// ---------- INIT ----------
 
 window.addEventListener("load", () => {
-  // Radio UI
   const zoneSelect    = document.getElementById("zoneSelect");
   const channelSelect = document.getElementById("channelSelect");
   const modeBadge     = document.getElementById("modeBadge");
@@ -26,7 +53,6 @@ window.addEventListener("load", () => {
   const pttBtn        = document.getElementById("ptt");
   const statusText    = document.getElementById("statusText");
 
-  // Setup UI
   const setupWrapper     = document.getElementById("setupWrapper");
   const setupPanel       = document.getElementById("setupPanel");
   const setupToggleBtn   = document.getElementById("setupToggleBtn");
@@ -34,17 +60,15 @@ window.addEventListener("load", () => {
   const zoneConfigArea   = document.getElementById("zoneConfigArea");
   const generateZonesBtn = document.getElementById("generateZonesBtn");
   const applySetupBtn    = document.getElementById("applySetupBtn");
+  const syncFromGovBtn   = document.getElementById("syncFromGovBtn");
 
-  // Gov monitor
   const activeRadioCountEl = document.getElementById("activeRadioCount");
   const lastTxEl           = document.getElementById("lastTx");
   const lastFreqEl         = document.getElementById("lastFreq");
   const lastModeEl         = document.getElementById("lastMode");
 
-  // ----- SETUP PANEL TOGGLE -----
-
+  // ----- Setup panel toggle -----
   let setupCollapsed = false;
-
   setupToggleBtn.addEventListener("click", () => {
     setupCollapsed = !setupCollapsed;
     if (setupCollapsed) {
@@ -58,41 +82,43 @@ window.addEventListener("load", () => {
     }
   });
 
-  // ----- SETUP PANEL LOGIC -----
+  // ----- Load gov + user zones, merge, populate -----
+  loadGovZones();
+  loadUserZones();
+  mergeZones();
+  populateZones();
 
+  // ----- User setup panel logic (Zones 2+) -----
   generateZonesBtn.addEventListener("click", () => {
     const count = parseInt(zoneCountInput.value);
-    if (!count || count < 1) return;
+    if (isNaN(count) || count < 0) return;
 
     zoneConfigArea.innerHTML = "";
 
-    for (let i = 1; i <= count; i++) {
+    for (let i = 0; i < count; i++) {
+      const zoneId = 2 + i; // user zones start at 2
       const div = document.createElement("div");
       div.style.marginTop = "20px";
 
-      const lockedLabel = (i === 1)
-        ? "(LOCKED – Government Only)"
-        : "(Unlocked)";
-
       div.innerHTML = `
-        <h4>Zone ${i} ${lockedLabel}</h4>
+        <h4>User Zone ${zoneId}</h4>
 
         <label>Zone Name</label>
-        <input id="zoneName_${i}" placeholder="e.g. RCPD PRIMARY">
+        <input id="zoneName_${zoneId}" placeholder="e.g. RCPD TAC">
 
         <label>Mode</label>
-        <select id="zoneMode_${i}">
+        <select id="zoneMode_${zoneId}">
           <option value="ANALOG">Analog (fuzzy)</option>
           <option value="DMR">DMR / MotoTRBO (digital)</option>
           <option value="P25">P25 (clean)</option>
         </select>
 
         <label>Number of Channels</label>
-        <input id="chanCount_${i}" type="number" min="1" placeholder="e.g. 1">
+        <input id="chanCount_${zoneId}" type="number" min="1" placeholder="e.g. 1">
 
-        <div id="chanArea_${i}"></div>
+        <div id="chanArea_${zoneId}"></div>
 
-        <button type="button" onclick="generateChannelInputs(${i})">Create Channels</button>
+        <button type="button" onclick="generateChannelInputs(${zoneId})">Create Channels</button>
       `;
 
       zoneConfigArea.appendChild(div);
@@ -100,37 +126,41 @@ window.addEventListener("load", () => {
   });
 
   applySetupBtn.addEventListener("click", () => {
-    zones = [];
+    // Build userZones from panel (zones 2+)
+    userZones = [];
 
-    const zoneCount = parseInt(zoneCountInput.value);
-    if (!zoneCount || zoneCount < 1) return;
+    const inputs = zoneConfigArea.querySelectorAll("h4");
+    inputs.forEach(h4 => {
+      const text = h4.textContent || "";
+      const match = text.match(/User Zone (\d+)/);
+      if (!match) return;
+      const zoneId = parseInt(match[1], 10);
 
-    for (let z = 1; z <= zoneCount; z++) {
-      const zoneNameEl = document.getElementById(`zoneName_${z}`);
-      const zoneModeEl = document.getElementById(`zoneMode_${z}`);
-      const chanCountEl = document.getElementById(`chanCount_${z}`);
+      const zoneNameEl = document.getElementById(`zoneName_${zoneId}`);
+      const zoneModeEl = document.getElementById(`zoneMode_${zoneId}`);
+      const chanCountEl = document.getElementById(`chanCount_${zoneId}`);
 
-      if (!zoneModeEl || !chanCountEl) continue;
+      if (!zoneModeEl || !chanCountEl) return;
 
       const chanCount = parseInt(chanCountEl.value) || 0;
 
       const zoneObj = {
-        id: z,
-        name: (zoneNameEl && zoneNameEl.value) || `Zone ${z}`,
-        locked: (z === 1), // Zone 1 = government locked
+        id: zoneId,
+        name: (zoneNameEl && zoneNameEl.value) || `Zone ${zoneId}`,
+        locked: false,
         mode: zoneModeEl.value || "ANALOG",
         channels: []
       };
 
       for (let c = 1; c <= chanCount; c++) {
-        const name = getVal(`chanName_${z}_${c}`);
-        const freq = getVal(`chanFreq_${z}_${c}`);
-        const pl   = getVal(`chanPL_${z}_${c}`);
-        const nac  = getVal(`chanNAC_${z}_${c}`);
-        const cc   = getVal(`chanCC_${z}_${c}`);
-        const slot = getVal(`chanSlot_${z}_${c}`);
-        const tg   = getVal(`chanTG_${z}_${c}`);
-        const enc  = getVal(`chanENC_${z}_${c}`);
+        const name = getVal(`chanName_${zoneId}_${c}`);
+        const freq = getVal(`chanFreq_${zoneId}_${c}`);
+        const pl   = getVal(`chanPL_${zoneId}_${c}`);
+        const nac  = getVal(`chanNAC_${zoneId}_${c}`);
+        const cc   = getVal(`chanCC_${zoneId}_${c}`);
+        const slot = getVal(`chanSlot_${zoneId}_${c}`);
+        const tg   = getVal(`chanTG_${zoneId}_${c}`);
+        const enc  = getVal(`chanENC_${zoneId}_${c}`);
 
         zoneObj.channels.push({
           name: name || `Channel ${c}`,
@@ -144,16 +174,24 @@ window.addEventListener("load", () => {
         });
       }
 
-      zones.push(zoneObj);
-    }
+      userZones.push(zoneObj);
+    });
 
+    saveUserZones();
+    mergeZones();
     populateZones();
 
-    // Auto-collapse after apply (your B choice)
+    // Auto-collapse after apply
     setupCollapsed = true;
     setupPanel.style.display = "none";
     setupToggleBtn.textContent = "Expand";
     setupWrapper.style.width = "120px";
+  });
+
+  syncFromGovBtn.addEventListener("click", () => {
+    loadGovZones();   // pull latest gov data
+    mergeZones();     // merge with userZones
+    populateZones();  // refresh UI
   });
 
   function getVal(id) {
@@ -209,8 +247,7 @@ window.addEventListener("load", () => {
     }
   };
 
-  // ----- RADIO UI LOGIC -----
-
+  // ----- Radio UI logic -----
   zoneSelect.addEventListener("change", () =>
     onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields)
   );
@@ -232,30 +269,79 @@ window.addEventListener("load", () => {
   pttBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startTx(statusText); });
   pttBtn.addEventListener("touchend",   (e) => { e.preventDefault(); stopTx(statusText); });
 
-  // ----- CROSS-TAB + GOV MONITOR -----
-
+  // ----- Cross-tab + gov monitor -----
   radioBus.onmessage = (event) => {
     const msg = event.data;
     if (!msg || !msg.freq || !msg.mode || !msg.url) return;
 
-    // Update monitor
     activeRadioCountEl.innerText = "1+";
     lastTxEl.innerText   = new Date().toLocaleTimeString();
     lastFreqEl.innerText = msg.freq;
     lastModeEl.innerText = msg.mode;
 
-    // Only hear if freq + mode match
     if (msg.freq === activeFreq && msg.mode === activeMode) {
       playProfiledAudio(msg.url, msg.mode);
     }
   };
 
-  // Initial empty state
   freqDisplay.innerText = "Freq: ---";
   modeFields.innerHTML = "";
 });
 
-// ---------------- RADIO HELPERS ----------------
+// ---------- GOV / USER LOAD & MERGE ----------
+
+function loadGovZones() {
+  try {
+    const raw = localStorage.getItem(LS_GOV_ZONES_KEY);
+    if (raw) {
+      govZones = JSON.parse(raw);
+    } else {
+      govZones = GOV_DEFAULT_ZONES;
+      localStorage.setItem(LS_GOV_ZONES_KEY, JSON.stringify(govZones));
+    }
+  } catch {
+    govZones = GOV_DEFAULT_ZONES;
+  }
+}
+
+function loadUserZones() {
+  try {
+    const raw = localStorage.getItem(LS_USER_ZONES_KEY);
+    if (raw) {
+      userZones = JSON.parse(raw);
+    } else {
+      userZones = [];
+    }
+  } catch {
+    userZones = [];
+  }
+}
+
+function saveUserZones() {
+  localStorage.setItem(LS_USER_ZONES_KEY, JSON.stringify(userZones));
+}
+
+function mergeZones() {
+  // govZones first (Zone 1 locked, plus any others gov created)
+  const map = new Map();
+  govZones.forEach(z => {
+    map.set(z.id, JSON.parse(JSON.stringify(z)));
+  });
+
+  // userZones next (only for zones not locked by gov)
+  userZones.forEach(z => {
+    const existing = map.get(z.id);
+    if (existing && existing.locked) {
+      // gov wins
+      return;
+    }
+    map.set(z.id, JSON.parse(JSON.stringify(z)));
+  });
+
+  mergedZones = Array.from(map.values()).sort((a, b) => a.id - b.id);
+}
+
+// ---------- RADIO HELPERS ----------
 
 function populateZones() {
   const zoneSelect    = document.getElementById("zoneSelect");
@@ -267,15 +353,15 @@ function populateZones() {
 
   zoneSelect.innerHTML = "";
 
-  zones.forEach((z, i) => {
+  mergedZones.forEach((z) => {
     const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = `${z.id} – ${z.name}`;
+    opt.value = z.id;
+    opt.textContent = `${z.id} – ${z.name}${z.locked ? " (LOCKED)" : ""}`;
     zoneSelect.appendChild(opt);
   });
 
-  if (zones.length > 0) {
-    zoneSelect.value = 0;
+  if (mergedZones.length > 0) {
+    zoneSelect.value = mergedZones[0].id;
     onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields);
   } else {
     freqDisplay.innerText = "Freq: ---";
@@ -284,8 +370,8 @@ function populateZones() {
 }
 
 function onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields) {
-  const zIndex = parseInt(zoneSelect.value, 10);
-  activeZone = zones[zIndex];
+  const zId = parseInt(zoneSelect.value, 10);
+  activeZone = mergedZones.find(z => z.id === zId);
 
   channelSelect.innerHTML = "";
   if (!activeZone || !Array.isArray(activeZone.channels)) return;
@@ -345,9 +431,7 @@ function updateModeFields(mode, ch, modeFields) {
 
   if (mode === "ANALOG") {
     const pl  = ch.pl  || "---";
-    modeFields.innerHTML = `
-      <div>PL / DPL: ${pl}</div>
-    `;
+    modeFields.innerHTML = `<div>PL / DPL: ${pl}</div>`;
   } else if (mode === "DMR") {
     const cc   = ch.cc   || "---";
     const slot = ch.slot || "---";
@@ -377,7 +461,7 @@ function playChannelName(name) {
   speechSynthesis.speak(utter);
 }
 
-// ---------------- PTT / AUDIO ----------------
+// ---------- PTT / AUDIO ----------
 
 async function ensureMic() {
   if (mediaStream) return;
@@ -403,10 +487,8 @@ async function startTx(statusText) {
     const blob = new Blob(chunks, { type: "audio/webm" });
     const url  = URL.createObjectURL(blob);
 
-    // Local playback
     playProfiledAudio(url, activeMode);
 
-    // Broadcast to other tabs
     radioBus.postMessage({
       freq: activeFreq,
       mode: activeMode,
