@@ -27,6 +27,9 @@ window.addEventListener("load", () => {
   const statusText    = document.getElementById("statusText");
 
   // Setup UI
+  const setupWrapper     = document.getElementById("setupWrapper");
+  const setupPanel       = document.getElementById("setupPanel");
+  const setupToggleBtn   = document.getElementById("setupToggleBtn");
   const zoneCountInput   = document.getElementById("zoneCountInput");
   const zoneConfigArea   = document.getElementById("zoneConfigArea");
   const generateZonesBtn = document.getElementById("generateZonesBtn");
@@ -37,6 +40,23 @@ window.addEventListener("load", () => {
   const lastTxEl           = document.getElementById("lastTx");
   const lastFreqEl         = document.getElementById("lastFreq");
   const lastModeEl         = document.getElementById("lastMode");
+
+  // ----- SETUP PANEL TOGGLE -----
+
+  let setupCollapsed = false;
+
+  setupToggleBtn.addEventListener("click", () => {
+    setupCollapsed = !setupCollapsed;
+    if (setupCollapsed) {
+      setupPanel.style.display = "none";
+      setupToggleBtn.textContent = "Expand";
+      setupWrapper.style.width = "120px";
+    } else {
+      setupPanel.style.display = "block";
+      setupToggleBtn.textContent = "Collapse";
+      setupWrapper.style.width = "340px";
+    }
+  });
 
   // ----- SETUP PANEL LOGIC -----
 
@@ -68,7 +88,7 @@ window.addEventListener("load", () => {
         </select>
 
         <label>Number of Channels</label>
-        <input id="chanCount_${i}" type="number" min="1" placeholder="e.g. 5">
+        <input id="chanCount_${i}" type="number" min="1" placeholder="e.g. 1">
 
         <div id="chanArea_${i}"></div>
 
@@ -128,6 +148,12 @@ window.addEventListener("load", () => {
     }
 
     populateZones();
+
+    // Auto-collapse after apply (your B choice)
+    setupCollapsed = true;
+    setupPanel.style.display = "none";
+    setupToggleBtn.textContent = "Expand";
+    setupWrapper.style.width = "120px";
   });
 
   function getVal(id) {
@@ -185,8 +211,12 @@ window.addEventListener("load", () => {
 
   // ----- RADIO UI LOGIC -----
 
-  zoneSelect.addEventListener("change", () => onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields));
-  channelSelect.addEventListener("change", () => onChannelChange(channelSelect, freqDisplay, modeBadge, modeFields));
+  zoneSelect.addEventListener("change", () =>
+    onZoneChange(zoneSelect, channelSelect, freqInput, freqDisplay, modeBadge, modeFields)
+  );
+  channelSelect.addEventListener("change", () =>
+    onChannelChange(channelSelect, freqDisplay, modeBadge, modeFields)
+  );
 
   setFreqBtn.addEventListener("click", () => {
     if (!activeZone || activeZone.locked) return;
@@ -198,6 +228,7 @@ window.addEventListener("load", () => {
 
   pttBtn.addEventListener("mousedown", () => startTx(statusText));
   pttBtn.addEventListener("mouseup",   () => stopTx(statusText));
+  pttBtn.addEventListener("mouseleave", () => stopTx(statusText));
   pttBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startTx(statusText); });
   pttBtn.addEventListener("touchend",   (e) => { e.preventDefault(); stopTx(statusText); });
 
@@ -405,18 +436,15 @@ function playProfiledAudio(url, mode) {
     biquad.type = "lowpass";
     biquad.frequency.value = 3400;
     gain.gain.value = 1.0;
-    // hook: add noise/hiss later if you want
   } else if (mode === "DMR") {
     biquad.type = "bandpass";
     biquad.frequency.value = 2000;
     biquad.Q.value = 1.5;
     gain.gain.value = 1.0;
-    // hook: add digital crunch later
   } else if (mode === "P25") {
     biquad.type = "highpass";
     biquad.frequency.value = 300;
     gain.gain.value = 1.0;
-    // keep clean
   }
 
   src.connect(biquad);
