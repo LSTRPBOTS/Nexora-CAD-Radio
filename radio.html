@@ -137,14 +137,36 @@
     }
 
     /* RIGHT SETUP PANEL */
-    #setupPanel {
+    #setupWrapper {
       width:340px;
       height:100vh;
       background:#14181d;
       border-left:2px solid #1f252d;
+      box-sizing:border-box;
+      display:flex;
+      flex-direction:column;
+    }
+
+    #setupHeader {
+      padding:10px;
+      border-bottom:1px solid #2a323d;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-sizing:border-box;
+    }
+
+    #setupToggleBtn {
+      width:auto;
+      padding:6px 10px;
+      font-size:12px;
+    }
+
+    #setupPanel {
       padding:20px;
       box-sizing:border-box;
       overflow-y:auto;
+      flex:1;
     }
 
     #govMonitor div {
@@ -161,6 +183,7 @@
     hr {
       border:0;
       border-top:1px solid #2a323d;
+      margin:20px 0;
     }
   </style>
 </head>
@@ -194,27 +217,34 @@
     <div id="statusText">Idle – program zones on the right, then key up</div>
   </div>
 
-  <!-- RIGHT SETUP PANEL -->
-  <div id="setupPanel">
-    <h3>Radio Setup</h3>
+  <!-- RIGHT SETUP WRAPPER -->
+  <div id="setupWrapper">
+    <div id="setupHeader">
+      <span>Setup / Government</span>
+      <button id="setupToggleBtn">Collapse</button>
+    </div>
 
-    <label>Number of Zones</label>
-    <input id="zoneCountInput" type="number" min="1" placeholder="e.g. 3">
+    <div id="setupPanel">
+      <h3>Radio Setup</h3>
 
-    <button id="generateZonesBtn">Create Zones</button>
+      <label>Number of Zones</label>
+      <input id="zoneCountInput" type="number" min="1" placeholder="e.g. 2">
 
-    <div id="zoneConfigArea"></div>
+      <button id="generateZonesBtn">Create Zones</button>
 
-    <button id="applySetupBtn">Apply Setup to Radio</button>
+      <div id="zoneConfigArea"></div>
 
-    <hr style="margin:20px 0;">
+      <button id="applySetupBtn">Apply Setup to Radio</button>
 
-    <h3>Government Monitoring</h3>
-    <div id="govMonitor">
-      <div>Active Radios: <span id="activeRadioCount">0</span></div>
-      <div>Last Transmission: <span id="lastTx">None</span></div>
-      <div>Last Frequency: <span id="lastFreq">---</span></div>
-      <div>Last Mode: <span id="lastMode">---</span></div>
+      <hr>
+
+      <h3>Government Monitoring</h3>
+      <div id="govMonitor">
+        <div>Active Radios: <span id="activeRadioCount">0</span></div>
+        <div>Last Transmission: <span id="lastTx">None</span></div>
+        <div>Last Frequency: <span id="lastFreq">---</span></div>
+        <div>Last Mode: <span id="lastMode">---</span></div>
+      </div>
     </div>
   </div>
 
