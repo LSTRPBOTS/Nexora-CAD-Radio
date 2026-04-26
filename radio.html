@@ -10,8 +10,11 @@
       color:#ffffff;
       font-family:Arial, sans-serif;
       overflow:hidden;
+      display:flex;
+      flex-direction:row;
     }
 
+    /* LEFT RADIO PANEL */
     #panel {
       width:340px;
       height:100vh;
@@ -19,9 +22,6 @@
       border-right:2px solid #1f252d;
       padding:20px;
       box-sizing:border-box;
-      position:fixed;
-      left:0;
-      top:0;
       display:flex;
       flex-direction:column;
       gap:10px;
@@ -104,9 +104,9 @@
       margin-top:2px;
     }
 
+    /* MAIN RADIO AREA */
     #main {
-      margin-left:340px;
-      height:100vh;
+      flex:1;
       display:flex;
       justify-content:center;
       align-items:center;
@@ -135,13 +135,40 @@
       font-size:14px;
       color:#9fa8b8;
     }
+
+    /* RIGHT SETUP PANEL */
+    #setupPanel {
+      width:340px;
+      height:100vh;
+      background:#14181d;
+      border-left:2px solid #1f252d;
+      padding:20px;
+      box-sizing:border-box;
+      overflow-y:auto;
+    }
+
+    #govMonitor div {
+      margin-top:4px;
+      font-size:13px;
+      color:#c3cad6;
+    }
+
+    h3, h4 {
+      margin:10px 0;
+      font-weight:bold;
+    }
+
+    hr {
+      border:0;
+      border-top:1px solid #2a323d;
+    }
   </style>
 </head>
 <body>
 
-  <!-- SIDE PANEL -->
+  <!-- LEFT RADIO PANEL -->
   <div id="panel">
-    <div id="identity">Loading user…</div>
+    <div id="identity">Nexora Radio</div>
 
     <label>Zone</label>
     <select id="zoneSelect"></select>
@@ -154,49 +181,42 @@
 
     <div id="freqDisplay">Freq: ---</div>
 
-    <div id="modeFields">
-      <!-- Filled by radio.js based on mode -->
-    </div>
+    <div id="modeFields"></div>
 
     <label>Custom Frequency (unlocked zones only)</label>
     <input id="freqInput" placeholder="Type frequency (any string)">
     <button id="setFreqBtn">Set Frequency</button>
-
-    <button id="openMDTBtn">Open MDT</button>
-    <button id="openCADBtn">Open CAD</button>
   </div>
 
   <!-- MAIN RADIO AREA -->
   <div id="main">
     <div id="ptt">PTT</div>
-    <div id="statusText">Idle – select zone/channel and press PTT</div>
+    <div id="statusText">Idle – program zones on the right, then key up</div>
   </div>
 
-  <!--
-    EXPECTED GLOBALS (set by your government/backend system before this script):
-    window.NEXORA_ACTIVE_USER = { name, callsign, departmentAbbr }
-    window.NEXORA_ZONES = [
-      {
-        id: 1,
-        name: "RCPD PRIMARY",
-        locked: true,
-        mode: "P25", // "ANALOG" | "DMR" | "P25"
-        channels: [
-          { name: "RCPD Dispatch", freq: "155.370", nac: "293" },
-          { name: "RCPD Patrol OPS", freq: "155.475", nac: "293" }
-        ]
-      },
-      {
-        id: 2,
-        name: "HE HEH EH EH E",
-        locked: false,
-        mode: "DMR",
-        channels: [
-          { name: "LCSO Dispatch Patrol OPS", freq: "9384838.4828", cc: 1, slot: 1, tg: 1001 }
-        ]
-      }
-    ];
-  -->
+  <!-- RIGHT SETUP PANEL -->
+  <div id="setupPanel">
+    <h3>Radio Setup</h3>
+
+    <label>Number of Zones</label>
+    <input id="zoneCountInput" type="number" min="1" placeholder="e.g. 3">
+
+    <button id="generateZonesBtn">Create Zones</button>
+
+    <div id="zoneConfigArea"></div>
+
+    <button id="applySetupBtn">Apply Setup to Radio</button>
+
+    <hr style="margin:20px 0;">
+
+    <h3>Government Monitoring</h3>
+    <div id="govMonitor">
+      <div>Active Radios: <span id="activeRadioCount">0</span></div>
+      <div>Last Transmission: <span id="lastTx">None</span></div>
+      <div>Last Frequency: <span id="lastFreq">---</span></div>
+      <div>Last Mode: <span id="lastMode">---</span></div>
+    </div>
+  </div>
 
   <script src="radio.js"></script>
 </body>
