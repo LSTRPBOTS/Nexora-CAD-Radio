@@ -12,7 +12,6 @@
       overflow:hidden;
     }
 
-    /* SIDE PANEL */
     #panel {
       width:340px;
       height:100vh;
@@ -105,7 +104,6 @@
       margin-top:2px;
     }
 
-    /* MAIN RADIO AREA */
     #main {
       margin-left:340px;
       height:100vh;
@@ -157,11 +155,7 @@
     <div id="freqDisplay">Freq: ---</div>
 
     <div id="modeFields">
-      <!-- Filled by radio.js based on mode:
-           Analog  → PL/DPL
-           DMR     → CC / Slot / TG
-           P25     → NAC / ENC
-      -->
+      <!-- Filled by radio.js based on mode -->
     </div>
 
     <label>Custom Frequency (unlocked zones only)</label>
@@ -177,6 +171,32 @@
     <div id="ptt">PTT</div>
     <div id="statusText">Idle – select zone/channel and press PTT</div>
   </div>
+
+  <!--
+    EXPECTED GLOBALS (set by your government/backend system before this script):
+    window.NEXORA_ACTIVE_USER = { name, callsign, departmentAbbr }
+    window.NEXORA_ZONES = [
+      {
+        id: 1,
+        name: "RCPD PRIMARY",
+        locked: true,
+        mode: "P25", // "ANALOG" | "DMR" | "P25"
+        channels: [
+          { name: "RCPD Dispatch", freq: "155.370", nac: "293" },
+          { name: "RCPD Patrol OPS", freq: "155.475", nac: "293" }
+        ]
+      },
+      {
+        id: 2,
+        name: "HE HEH EH EH E",
+        locked: false,
+        mode: "DMR",
+        channels: [
+          { name: "LCSO Dispatch Patrol OPS", freq: "9384838.4828", cc: 1, slot: 1, tg: 1001 }
+        ]
+      }
+    ];
+  -->
 
   <script src="radio.js"></script>
 </body>
