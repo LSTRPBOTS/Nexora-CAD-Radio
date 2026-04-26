@@ -2,25 +2,182 @@
 <html>
 <head>
   <title>Nexora Radio</title>
+  <meta charset="UTF-8">
   <style>
-    body { background:#111; color:white; font-family:Arial; padding:20px; }
-    #ptt { padding:20px; font-size:18px; margin-top:20px; }
-    #overlay {
-      position:fixed; top:0; left:0; right:0;
-      background:#901; color:black; padding:10px;
-      text-align:center; display:none;
+    body {
+      margin:0;
+      background:#0d0f12;
+      color:#ffffff;
+      font-family:Arial, sans-serif;
+      overflow:hidden;
+    }
+
+    /* SIDE PANEL */
+    #panel {
+      width:340px;
+      height:100vh;
+      background:#14181d;
+      border-right:2px solid #1f252d;
+      padding:20px;
+      box-sizing:border-box;
+      position:fixed;
+      left:0;
+      top:0;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    #identity {
+      font-size:18px;
+      margin-bottom:10px;
+      color:#4aa3ff;
+    }
+
+    label {
+      font-size:13px;
+      color:#9fa8b8;
+      margin-top:6px;
+      display:block;
+    }
+
+    select, input, button {
+      width:100%;
+      padding:10px;
+      margin-top:4px;
+      background:#1c222b;
+      color:#ffffff;
+      border:1px solid #2a323d;
+      font-size:14px;
+      box-sizing:border-box;
+    }
+
+    select:disabled, input:disabled {
+      opacity:0.5;
+      cursor:not-allowed;
+    }
+
+    button {
+      background:#4aa3ff;
+      border:none;
+      cursor:pointer;
+      font-weight:bold;
+    }
+
+    button:active {
+      background:#2f7fcc;
+    }
+
+    #modeBadge {
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:4px;
+      font-size:12px;
+      margin-top:4px;
+    }
+
+    .mode-analog {
+      background:#3b2b1a;
+      color:#ffcf7a;
+    }
+    .mode-dmr {
+      background:#1f2f3b;
+      color:#7ad0ff;
+    }
+    .mode-p25 {
+      background:#1f3b2a;
+      color:#7affb4;
+    }
+
+    #freqDisplay {
+      margin-top:6px;
+      font-size:14px;
+      color:#c3cad6;
+    }
+
+    #modeFields {
+      margin-top:8px;
+      font-size:13px;
+      color:#c3cad6;
+    }
+
+    #modeFields div {
+      margin-top:2px;
+    }
+
+    /* MAIN RADIO AREA */
+    #main {
+      margin-left:340px;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      gap:20px;
+    }
+
+    #ptt {
+      width:240px;
+      height:240px;
+      border-radius:50%;
+      background:#4aa3ff;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-size:32px;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    #ptt:active {
+      background:#2f7fcc;
+    }
+
+    #statusText {
+      font-size:14px;
+      color:#9fa8b8;
     }
   </style>
 </head>
 <body>
 
-<h1>Nexora Radio</h1>
-<div id="userInfo"></div>
+  <!-- SIDE PANEL -->
+  <div id="panel">
+    <div id="identity">Loading user…</div>
 
-<button id="ptt">Hold to Talk</button>
+    <label>Zone</label>
+    <select id="zoneSelect"></select>
 
-<div id="overlay"></div>
+    <label>Channel</label>
+    <select id="channelSelect"></select>
 
-<script src="radio.js"></script>
+    <label>Mode</label>
+    <div id="modeBadge" class="mode-analog">Analog (fuzzy)</div>
+
+    <div id="freqDisplay">Freq: ---</div>
+
+    <div id="modeFields">
+      <!-- Filled by radio.js based on mode:
+           Analog  → PL/DPL
+           DMR     → CC / Slot / TG
+           P25     → NAC / ENC
+      -->
+    </div>
+
+    <label>Custom Frequency (unlocked zones only)</label>
+    <input id="freqInput" placeholder="Type frequency (any string)">
+    <button id="setFreqBtn">Set Frequency</button>
+
+    <button id="openMDTBtn">Open MDT</button>
+    <button id="openCADBtn">Open CAD</button>
+  </div>
+
+  <!-- MAIN RADIO AREA -->
+  <div id="main">
+    <div id="ptt">PTT</div>
+    <div id="statusText">Idle – select zone/channel and press PTT</div>
+  </div>
+
+  <script src="radio.js"></script>
 </body>
 </html>
