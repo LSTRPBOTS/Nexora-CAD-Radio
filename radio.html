@@ -1,53 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <title>Nexora Radio - System Stable</title>
+  <title>Nexora Radio</title>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-    .display-panel { background: #f4f4f4; padding: 15px; border-radius: 8px; margin: 10px 0; border: 1px solid #ddd; }
-    #modeBadge { display: inline-block; background: #007bff; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-    .controls { margin-top: 15px; }
-    select, input { margin-bottom: 10px; display: block; width: 100%; max-width: 300px; }
+    body { font-family: monospace; background: #222; color: #0f0; padding: 20px; }
+    .radio-container { border: 2px solid #444; padding: 15px; width: 300px; background: #000; }
+    #modeBadge { background: #555; color: #fff; padding: 2px 5px; float: right; }
+    #freqDisplay { font-size: 1.5rem; margin: 10px 0; }
+    select, input, button { width: 100%; margin-top: 10px; background: #333; color: #0f0; border: 1px solid #555; }
+    button { cursor: pointer; font-weight: bold; }
+    button:active { background: #0f0; color: #000; }
   </style>
 </head>
 <body>
 
-  <h2>Nexora Radio</h2>
-
-  <div class="display-panel">
-    <div id="modeBadge">---</div>
-    <div id="freqDisplay" style="font-size: 1.2rem; font-weight: bold;">Freq: ---</div>
-    <div id="statusText">Status: Idle</div>
-  </div>
-
-  <label>Zone Selection</label>
+<div class="radio-container">
+  <div id="modeBadge">---</div>
+  <div id="freqDisplay">155.000</div>
+  
+  <label>ZONE</label>
   <select id="zoneSelect"></select>
 
-  <label>Channel Selection</label>
+  <label>CHANNEL</label>
   <select id="channelSelect"></select>
 
   <hr>
+  
+  <input id="freqInput" placeholder="Manual Freq...">
+  <button id="setFreqBtn">SET FREQUENCY</button>
+  
+  <button id="ptt" style="height: 50px; margin-top: 20px;">PTT (TRANSMIT)</button>
+  <div id="statusText" style="text-align:center; margin-top:5px;">IDLE</div>
 
-  <div class="controls">
-    <label>Manual Frequency</label>
-    <input type="text" id="freqInput" placeholder="e.g. 155.000">
-    <button id="setFreqBtn">Set Frequency</button>
+  <div style="margin-top: 15px; font-size: 0.8rem;">
+    <input type="checkbox" id="quickToggle"> ENABLE QUICK TX
+    <button id="syncFromGovBtn" style="width: auto; float: right;">SYNC</button>
   </div>
+</div>
 
-  <div class="controls">
-    <button id="ptt" style="padding: 10px 20px; cursor: pointer;">PTT (Transmit)</button>
-    <button id="quickPTT" style="display:none;">Quick TX</button>
-  </div>
-
-  <div class="controls">
-    <label>
-      <input type="checkbox" id="quickToggle"> Enable Quick TX
-    </label>
-    <button id="syncFromGovBtn">Sync from HQ</button>
-  </div>
-
-  <script src="radio.js"></script>
+<script src="radio.js"></script>
 </body>
 </html>
