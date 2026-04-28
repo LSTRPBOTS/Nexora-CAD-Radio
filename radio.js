@@ -8,51 +8,62 @@ let activeChannel = null;
 let activeFreq = null;
 let activeMode = "ANALOG";
 
-let radioBus = null;
+// ---------- TAB ID & BROADCAST ----------
+if (!window.name) window.name = "radio_" + Math.random().toString(36).slice(2);
+const radioBus = new BroadcastChannel("nexora_radio");
 
-// ---------- TAB ID FIX ----------
-if (!window.name) {
-  window.name = "radio_" + Math.random().toString(36).slice(2);
-}
-
-// ---------- BROADCAST ----------
-try {
-  radioBus = new BroadcastChannel("nexora_radio");
-} catch {}
-
-// ---------- STORAGE ----------
+// ---------- CONSTANTS ----------
 const LS_GOV = "nexora_gov_zones";
 const LS_USER = "nexora_user_zones";
 
-// ---------- INIT ----------
+// ---------- INIT ON LOAD ----------
 window.addEventListener("load", () => {
+  setupEventListeners();
+  refreshRadioData();
+});
 
+function refreshRadioData() {
   loadGov();
   loadUser();
   merge();
 
-  // 🔥 GUARANTEE ZONE 1 EXISTS
-  if (!mergedZones.length) {
+  // 🔥 GUARANTEE DATA EXISTS
+  if (mergedZones.length === 0) {
     mergedZones = [{
       id: 1,
       name: "Zone 1 (DEFAULT)",
       locked: true,
-      mode: "P25",
-      channels: [{
-        name: "Channel 1",
-        freq: "155.000"
-      }]
+      channels: [{ name: "Channel 1", freq: "155.000", mode: "ANALOG" }]
     }];
   }
 
-  initUI();
-});
+  populateZoneDropdown();
+}
 
-// ---------- UI INIT ----------
-function initUI() {
+function setupEventListeners() {
   const zoneSelect = document.getElementById("zoneSelect");
   const channelSelect = document.getElementById("channelSelect");
 
+  // Zone Change logic
+  zoneSelect.addEventListener("change", () => {
+    const selectedZone = mergedZones.find(z => z.id == zoneSelect.value);
+    if (selectedZone) applyZone(selectedZone);
+  });
+
+  // Channel Change logic
+  channelSelect.addEventListener("change", () => {
+    if (activeZone && activeZone.channels[channelSelect.value]) {
+      applyChannel(activeZone.channels[channelSelect.value]);
+    }
+  });
+
+  // PTT logic (Example)
+  document.getElementById("ptt").onmousedown = () => updateStatus("TRANSMITTING...");
+  document.getElementById("ptt").onmouseup = () => updateStatus("Idle");
+}
+
+function populateZoneDropdown() {
+  const zoneSelect = document.getElementById("zoneSelect");
   zoneSelect.innerHTML = "";
 
   mergedZones.forEach(z => {
@@ -62,71 +73,56 @@ function initUI() {
     zoneSelect.appendChild(opt);
   });
 
+  // Force first zone
   zoneSelect.value = mergedZones[0].id;
-
   applyZone(mergedZones[0]);
 }
 
-// ---------- ZONE ----------
 function applyZone(zone) {
   activeZone = zone;
-
-  const zoneSelect = document.getElementById("zoneSelect");
   const channelSelect = document.getElementById("channelSelect");
-
   channelSelect.innerHTML = "";
 
-  zone.channels.forEach((c, i) => {
+  zone.channels.forEach((ch, index) => {
     const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = c.name;
+    opt.value = index;
+    opt.textContent = ch.name;
     channelSelect.appendChild(opt);
   });
 
+  // Default to first channel in zone
   channelSelect.value = 0;
-
   applyChannel(zone.channels[0]);
-
-  zoneSelect.onchange = () => {
-    const z = mergedZones.find(x => x.id == zoneSelect.value);
-    applyZone(z);
-  };
-
-  channelSelect.onchange = () => {
-    applyChannel(zone.channels[channelSelect.value]);
-  };
 }
 
-// ---------- CHANNEL ----------
 function applyChannel(ch) {
   if (!ch) return;
 
   activeChannel = ch;
   activeFreq = ch.freq;
-  activeMode = "ANALOG";
+  activeMode = ch.mode || "ANALOG";
 
-  document.getElementById("freqDisplay").innerText = activeFreq;
+  document.getElementById("freqDisplay").innerText = `Freq: ${activeFreq}`;
   document.getElementById("modeBadge").innerText = activeMode;
 }
 
-// ---------- LOAD ----------
+function updateStatus(msg) {
+  document.getElementById("statusText").innerText = `Status: ${msg}`;
+}
+
+// ---------- DATA LOADING ----------
 function loadGov() {
   try {
     govZones = JSON.parse(localStorage.getItem(LS_GOV)) || [];
-  } catch {
-    govZones = [];
-  }
+  } catch { govZones = []; }
 }
 
 function loadUser() {
   try {
     userZones = JSON.parse(localStorage.getItem(LS_USER)) || [];
-  } catch {
-    userZones = [];
-  }
+  } catch { userZones = []; }
 }
 
-// ---------- MERGE ----------
 function merge() {
   mergedZones = [...govZones, ...userZones];
 }
