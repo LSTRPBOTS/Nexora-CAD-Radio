@@ -8,64 +8,42 @@ let activeChannel = null;
 let activeFreq = null;
 let activeMode = "ANALOG";
 
-// ---------- TAB ID & BROADCAST ----------
-if (!window.name) window.name = "radio_" + Math.random().toString(36).slice(2);
-const radioBus = new BroadcastChannel("nexora_radio");
-
-// ---------- CONSTANTS ----------
 const LS_GOV = "nexora_gov_zones";
 const LS_USER = "nexora_user_zones";
 
-// ---------- INIT ON LOAD ----------
+// ---------- INIT ----------
 window.addEventListener("load", () => {
-  setupEventListeners();
-  refreshRadioData();
+  initRadio();
 });
 
-function refreshRadioData() {
-  loadGov();
-  loadUser();
-  merge();
+function initRadio() {
+  // 1. Load Data
+  try {
+    govZones = JSON.parse(localStorage.getItem(LS_GOV)) || [];
+    userZones = JSON.parse(localStorage.getItem(LS_USER)) || [];
+  } catch (e) {
+    console.error("Storage error", e);
+  }
 
-  // 🔥 GUARANTEE DATA EXISTS
+  // 2. Merge
+  mergedZones = [...govZones, ...userZones];
+
+  // 3. 🔥 THE "ANTI-FUCKUP" FAILSAFE
+  // If nothing exists, force Zone 1 so the UI can't crash
   if (mergedZones.length === 0) {
     mergedZones = [{
       id: 1,
       name: "Zone 1 (DEFAULT)",
-      locked: true,
       channels: [{ name: "Channel 1", freq: "155.000", mode: "ANALOG" }]
     }];
   }
 
-  populateZoneDropdown();
-}
-
-function setupEventListeners() {
+  // 4. Setup UI Elements
   const zoneSelect = document.getElementById("zoneSelect");
   const channelSelect = document.getElementById("channelSelect");
 
-  // Zone Change logic
-  zoneSelect.addEventListener("change", () => {
-    const selectedZone = mergedZones.find(z => z.id == zoneSelect.value);
-    if (selectedZone) applyZone(selectedZone);
-  });
-
-  // Channel Change logic
-  channelSelect.addEventListener("change", () => {
-    if (activeZone && activeZone.channels[channelSelect.value]) {
-      applyChannel(activeZone.channels[channelSelect.value]);
-    }
-  });
-
-  // PTT logic (Example)
-  document.getElementById("ptt").onmousedown = () => updateStatus("TRANSMITTING...");
-  document.getElementById("ptt").onmouseup = () => updateStatus("Idle");
-}
-
-function populateZoneDropdown() {
-  const zoneSelect = document.getElementById("zoneSelect");
+  // Clear and Populate Zones
   zoneSelect.innerHTML = "";
-
   mergedZones.forEach(z => {
     const opt = document.createElement("option");
     opt.value = z.id;
@@ -73,56 +51,55 @@ function populateZoneDropdown() {
     zoneSelect.appendChild(opt);
   });
 
-  // Force first zone
-  zoneSelect.value = mergedZones[0].id;
-  applyZone(mergedZones[0]);
+  // 5. ATTACH LISTENERS ONCE
+  zoneSelect.onchange = () => {
+    const target = mergedZones.find(x => x.id == zoneSelect.value);
+    if (target) updateZoneUI(target);
+  };
+
+  channelSelect.onchange = () => {
+    if (activeZone && activeZone.channels[channelSelect.value]) {
+      updateChannelUI(activeZone.channels[channelSelect.value]);
+    }
+  };
+
+  // 6. KICKSTART BOOT SEQUENCE
+  updateZoneUI(mergedZones[0]);
 }
 
-function applyZone(zone) {
+// ---------- UI UPDATE LOGIC ----------
+
+function updateZoneUI(zone) {
   activeZone = zone;
   const channelSelect = document.getElementById("channelSelect");
+  
+  // Repopulate Channels for this zone
   channelSelect.innerHTML = "";
-
-  zone.channels.forEach((ch, index) => {
+  zone.channels.forEach((c, i) => {
     const opt = document.createElement("option");
-    opt.value = index;
-    opt.textContent = ch.name;
+    opt.value = i;
+    opt.textContent = c.name;
     channelSelect.appendChild(opt);
   });
 
-  // Default to first channel in zone
+  // Default to first channel
   channelSelect.value = 0;
-  applyChannel(zone.channels[0]);
+  updateChannelUI(zone.channels[0]);
 }
 
-function applyChannel(ch) {
+function updateChannelUI(ch) {
   if (!ch) return;
 
   activeChannel = ch;
   activeFreq = ch.freq;
   activeMode = ch.mode || "ANALOG";
 
-  document.getElementById("freqDisplay").innerText = `Freq: ${activeFreq}`;
+  // Update Visuals
+  document.getElementById("freqDisplay").innerText = activeFreq;
   document.getElementById("modeBadge").innerText = activeMode;
 }
 
-function updateStatus(msg) {
-  document.getElementById("statusText").innerText = `Status: ${msg}`;
-}
-
-// ---------- DATA LOADING ----------
-function loadGov() {
-  try {
-    govZones = JSON.parse(localStorage.getItem(LS_GOV)) || [];
-  } catch { govZones = []; }
-}
-
-function loadUser() {
-  try {
-    userZones = JSON.parse(localStorage.getItem(LS_USER)) || [];
-  } catch { userZones = []; }
-}
-
-function merge() {
-  mergedZones = [...govZones, ...userZones];
-}
+// ---------- PTT LOGIC ----------
+const ptt = document.getElementById("ptt");
+ptt.onmousedown = () => { document.getElementById("statusText").innerText = "TX..."; ptt.style.color = "red"; };
+ptt.onmouseup = () => { document.getElementById("statusText").innerText = "IDLE"; ptt.style.color = "#0f0"; };
