@@ -75,18 +75,9 @@
       margin-top:4px;
     }
 
-    .mode-analog {
-      background:#3b2b1a;
-      color:#ffcf7a;
-    }
-    .mode-dmr {
-      background:#1f2f3b;
-      color:#7ad0ff;
-    }
-    .mode-p25 {
-      background:#1f3b2a;
-      color:#7affb4;
-    }
+    .mode-analog { background:#3b2b1a; color:#ffcf7a; }
+    .mode-dmr { background:#1f2f3b; color:#7ad0ff; }
+    .mode-p25 { background:#1f3b2a; color:#7affb4; }
 
     #freqDisplay {
       margin-top:6px;
@@ -112,6 +103,7 @@
       align-items:center;
       flex-direction:column;
       gap:20px;
+      position:relative;
     }
 
     #ptt {
@@ -134,6 +126,22 @@
     #statusText {
       font-size:14px;
       color:#9fa8b8;
+    }
+
+    /* ⚡ QUICK TX BUTTON */
+    #quickPTT {
+      position:absolute;
+      bottom:20px;
+      right:20px;
+      width:120px;
+      padding:12px;
+      font-size:14px;
+      display:none;
+      background:#ff9f43;
+    }
+
+    #quickPTT.active {
+      background:#ff5e3a;
     }
 
     /* RIGHT SETUP PANEL */
@@ -221,6 +229,9 @@
   <div id="main">
     <div id="ptt">PTT</div>
     <div id="statusText">Idle – program zones on the right, then key up</div>
+
+    <!-- ⚡ QUICK TX BUTTON -->
+    <button id="quickPTT">⚡ Quick TX</button>
   </div>
 
   <!-- RIGHT SETUP WRAPPER -->
@@ -234,7 +245,7 @@
       <h3>Radio Setup (User Zones Only)</h3>
 
       <p style="font-size:12px;color:#c3cad6;">
-        Zone 1 is government‑controlled and cannot be edited here.
+        Zone 1 is government-controlled and cannot be edited here.
       </p>
 
       <label>Number of User Zones (starting at Zone 2)</label>
@@ -245,6 +256,15 @@
       <div id="zoneConfigArea"></div>
 
       <button id="applySetupBtn">Apply Setup to Radio</button>
+
+      <hr>
+
+      <!-- ⚡ QUICK TX SETTING -->
+      <h3>Radio Options</h3>
+      <label>
+        <input type="checkbox" id="quickToggle">
+        Enable Quick-Access Transmit Button
+      </label>
 
       <hr>
 
