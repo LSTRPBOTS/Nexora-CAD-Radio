@@ -8,7 +8,7 @@ let activeZone = null;
 let activeChannel = null;
 let activeFreq = null;
 let activeMode = "ANALOG";
-
+ 
 let radioBus = null;
 
 let mediaStream = null;
