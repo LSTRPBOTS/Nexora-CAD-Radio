@@ -22,14 +22,12 @@ if (!window.name) {
   window.name = "radio_" + Math.random().toString(36).slice(2);
 }
 
-// ---------- CONSTANTS ----------
-
+// ---------- STORAGE KEYS ----------
 const LS_USER_ZONES_KEY = "nexora_user_zones";
 const LS_GOV_ZONES_KEY  = "nexora_gov_zones";
 const LS_QUICK_TX       = "nexora_quick_tx";
 
-// ---------- INIT RADIO BUS (SAFE) ----------
-
+// ---------- INIT BROADCAST ----------
 try {
   radioBus = new BroadcastChannel("nexora_radio");
   console.log("[Radio] BroadcastChannel OK");
@@ -37,13 +35,13 @@ try {
   console.error("[Radio] BroadcastChannel FAILED", e);
 }
 
-// ---------- LOAD ----------
+// ---------- INIT ----------
 window.addEventListener("load", () => {
 
   const quickToggle = document.getElementById("quickToggle");
   const quickBtn    = document.getElementById("quickPTT");
 
-  // Quick TX state
+  // Load quick TX state
   quickToggle.checked = localStorage.getItem(LS_QUICK_TX) === "true";
   updateQuickBtn();
 
@@ -56,7 +54,7 @@ window.addEventListener("load", () => {
     quickBtn.style.display = quickToggle.checked ? "block" : "none";
   }
 
-  // Quick TX toggle behavior
+  // Quick TX toggle button
   quickBtn.addEventListener("click", async () => {
     if (!quickActive) {
       await startTx(document.getElementById("statusText"));
@@ -84,8 +82,7 @@ window.addEventListener("load", () => {
   populateZones();
 });
 
-// ---------- RX (FIXED SAFE HANDLER) ----------
-
+// ---------- RX HANDLER ----------
 if (radioBus) {
   radioBus.onmessage = (event) => {
     const msg = event.data;
@@ -179,9 +176,94 @@ function playProfiledAudio(url, mode) {
   audio.play().catch(() => {});
 }
 
-// ---------- PLACEHOLDER (your existing functions stay unchanged) ----------
+// ---------- LOAD ZONES ----------
+function loadGovZones() {
+  try {
+    const raw = localStorage.getItem(LS_GOV_ZONES_KEY);
+    govZones = raw ? JSON.parse(raw) : [];
+  } catch {
+    govZones = [];
+  }
+}
 
-function loadGovZones() {}
-function loadUserZones() {}
-function mergeZones() {}
-function populateZones() {}
+function loadUserZones() {
+  try {
+    const raw = localStorage.getItem(LS_USER_ZONES_KEY);
+    userZones = raw ? JSON.parse(raw) : [];
+  } catch {
+    userZones = [];
+  }
+}
+
+// ---------- MERGE ----------
+function mergeZones() {
+  const map = new Map();
+
+  govZones.forEach(z => map.set(z.id, structuredClone(z)));
+
+  userZones.forEach(z => {
+    const existing = map.get(z.id);
+    if (existing && existing.locked) return;
+    map.set(z.id, structuredClone(z));
+  });
+
+  mergedZones = [...map.values()].sort((a,b) => a.id - b.id);
+}
+
+// ---------- POPULATE UI ----------
+function populateZones() {
+  const zoneSelect    = document.getElementById("zoneSelect");
+  const channelSelect = document.getElementById("channelSelect");
+  const freqDisplay   = document.getElementById("freqDisplay");
+  const modeBadge     = document.getElementById("modeBadge");
+  const modeFields    = document.getElementById("modeFields");
+
+  zoneSelect.innerHTML = "";
+
+  mergedZones.forEach(z => {
+    const opt = document.createElement("option");
+    opt.value = z.id;
+    opt.textContent = `${z.id} – ${z.name}${z.locked ? " (LOCKED)" : ""}`;
+    zoneSelect.appendChild(opt);
+  });
+
+  if (mergedZones.length > 0) {
+    zoneSelect.value = mergedZones[0].id;
+
+    onZoneChange(zoneSelect, channelSelect, freqDisplay, modeBadge, modeFields);
+
+    // 🔥 AUTO-SELECT CHANNEL 1 ON LOAD
+    setTimeout(() => {
+      channelSelect.value = 0;
+      onChannelChange(channelSelect, freqDisplay, modeBadge, modeFields);
+    }, 0);
+  }
+}
+
+// ---------- ZONE CHANGE ----------
+function onZoneChange(zoneSelect, channelSelect, freqDisplay, modeBadge, modeFields) {
+  const zId = parseInt(zoneSelect.value);
+
+  activeZone = mergedZones.find(z => z.id === zId);
+
+  channelSelect.innerHTML = "";
+
+  activeZone.channels.forEach((c, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = c.name;
+    channelSelect.appendChild(opt);
+  });
+}
+
+// ---------- CHANNEL CHANGE ----------
+function onChannelChange(channelSelect, freqDisplay, modeBadge, modeFields) {
+  const idx = parseInt(channelSelect.value);
+
+  activeChannel = activeZone.channels[idx];
+  activeFreq = activeChannel.freq;
+  activeMode = (activeZone.mode || "ANALOG").toUpperCase();
+
+  freqDisplay.innerText = `Freq: ${activeFreq}`;
+  modeBadge.innerText = activeMode;
+}
