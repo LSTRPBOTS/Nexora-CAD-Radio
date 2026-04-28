@@ -3,21 +3,21 @@
 <head>
   <title>Nexora Radio</title>
   <meta charset="UTF-8">
+
   <style>
     body {
       margin:0;
       background:#0d0f12;
-      color:#ffffff;
+      color:#fff;
       font-family:Arial, sans-serif;
-      overflow:hidden;
       display:flex;
-      flex-direction:row;
+      height:100vh;
+      overflow:hidden;
     }
 
-    /* LEFT RADIO PANEL */
+    /* LEFT PANEL */
     #panel {
       width:340px;
-      height:100vh;
       background:#14181d;
       border-right:2px solid #1f252d;
       padding:20px;
@@ -29,181 +29,113 @@
 
     #identity {
       font-size:18px;
-      margin-bottom:10px;
       color:#4aa3ff;
+      margin-bottom:10px;
     }
 
     label {
-      font-size:13px;
+      font-size:12px;
       color:#9fa8b8;
-      margin-top:6px;
-      display:block;
     }
 
     select, input, button {
       width:100%;
       padding:10px;
-      margin-top:4px;
       background:#1c222b;
-      color:#ffffff;
+      color:#fff;
       border:1px solid #2a323d;
-      font-size:14px;
       box-sizing:border-box;
-    }
-
-    select:disabled, input:disabled {
-      opacity:0.5;
-      cursor:not-allowed;
     }
 
     button {
       background:#4aa3ff;
-      border:none;
       cursor:pointer;
-      font-weight:bold;
     }
 
     button:active {
       background:#2f7fcc;
     }
 
-    #modeBadge {
-      display:inline-block;
-      padding:4px 8px;
-      border-radius:4px;
-      font-size:12px;
-      margin-top:4px;
-    }
-
-    .mode-analog { background:#3b2b1a; color:#ffcf7a; }
-    .mode-dmr { background:#1f2f3b; color:#7ad0ff; }
-    .mode-p25 { background:#1f3b2a; color:#7affb4; }
-
-    #freqDisplay {
-      margin-top:6px;
-      font-size:14px;
-      color:#c3cad6;
-    }
-
-    #modeFields {
-      margin-top:8px;
-      font-size:13px;
-      color:#c3cad6;
-    }
-
-    #modeFields div {
-      margin-top:2px;
-    }
-
-    /* MAIN RADIO AREA */
+    /* MAIN */
     #main {
       flex:1;
       display:flex;
-      justify-content:center;
       align-items:center;
+      justify-content:center;
       flex-direction:column;
-      gap:20px;
       position:relative;
     }
 
     #ptt {
-      width:240px;
-      height:240px;
+      width:220px;
+      height:220px;
       border-radius:50%;
       background:#4aa3ff;
       display:flex;
-      justify-content:center;
       align-items:center;
-      font-size:32px;
-      cursor:pointer;
+      justify-content:center;
+      font-size:28px;
       user-select:none;
-    }
-
-    #ptt:active {
-      background:#2f7fcc;
+      cursor:pointer;
     }
 
     #statusText {
-      font-size:14px;
+      margin-top:20px;
       color:#9fa8b8;
     }
 
-    /* ⚡ QUICK TX BUTTON */
+    /* QUICK TX */
     #quickPTT {
       position:absolute;
       bottom:20px;
       right:20px;
-      width:120px;
+      width:140px;
       padding:12px;
-      font-size:14px;
       display:none;
       background:#ff9f43;
+      border:none;
+      cursor:pointer;
     }
 
     #quickPTT.active {
       background:#ff5e3a;
     }
 
-    /* RIGHT SETUP PANEL */
+    /* RIGHT PANEL */
     #setupWrapper {
       width:340px;
-      height:100vh;
       background:#14181d;
       border-left:2px solid #1f252d;
-      box-sizing:border-box;
       display:flex;
       flex-direction:column;
     }
 
     #setupHeader {
       padding:10px;
-      border-bottom:1px solid #2a323d;
       display:flex;
       justify-content:space-between;
-      align-items:center;
-      box-sizing:border-box;
-    }
-
-    #setupToggleBtn {
-      width:auto;
-      padding:6px 10px;
-      font-size:12px;
+      border-bottom:1px solid #2a323d;
     }
 
     #setupPanel {
       padding:20px;
-      box-sizing:border-box;
-      overflow-y:auto;
+      overflow:auto;
       flex:1;
     }
 
-    #govMonitor div {
-      margin-top:4px;
-      font-size:13px;
-      color:#c3cad6;
-    }
-
-    h3, h4 {
-      margin:10px 0;
-      font-weight:bold;
-    }
-
-    hr {
-      border:0;
-      border-top:1px solid #2a323d;
-      margin:20px 0;
-    }
-
-    .lockedTag {
-      font-size:11px;
-      color:#ff7a7a;
-      margin-left:4px;
+    #modeBadge {
+      padding:4px 8px;
+      background:#2a323d;
+      display:inline-block;
+      margin-top:5px;
+      font-size:12px;
     }
   </style>
 </head>
+
 <body>
 
-  <!-- LEFT RADIO PANEL -->
+  <!-- LEFT -->
   <div id="panel">
     <div id="identity">Nexora Radio</div>
 
@@ -214,75 +146,46 @@
     <select id="channelSelect"></select>
 
     <label>Mode</label>
-    <div id="modeBadge" class="mode-analog">Analog (fuzzy)</div>
+    <div id="modeBadge">---</div>
 
     <div id="freqDisplay">Freq: ---</div>
 
-    <div id="modeFields"></div>
-
-    <label>Custom Frequency (unlocked zones only)</label>
-    <input id="freqInput" placeholder="Type frequency (any string)">
+    <label>Custom Frequency</label>
+    <input id="freqInput" placeholder="frequency">
     <button id="setFreqBtn">Set Frequency</button>
   </div>
 
-  <!-- MAIN RADIO AREA -->
+  <!-- MAIN -->
   <div id="main">
     <div id="ptt">PTT</div>
-    <div id="statusText">Idle – program zones on the right, then key up</div>
+    <div id="statusText">Idle</div>
 
-    <!-- ⚡ QUICK TX BUTTON -->
+    <!-- QUICK TX BUTTON -->
     <button id="quickPTT">⚡ Quick TX</button>
   </div>
 
-  <!-- RIGHT SETUP WRAPPER -->
+  <!-- RIGHT -->
   <div id="setupWrapper">
     <div id="setupHeader">
-      <span>Setup / Government Sync</span>
+      <span>Setup</span>
       <button id="setupToggleBtn">Collapse</button>
     </div>
 
     <div id="setupPanel">
-      <h3>Radio Setup (User Zones Only)</h3>
 
-      <p style="font-size:12px;color:#c3cad6;">
-        Zone 1 is government-controlled and cannot be edited here.
-      </p>
-
-      <label>Number of User Zones (starting at Zone 2)</label>
-      <input id="zoneCountInput" type="number" min="0" placeholder="e.g. 1">
-
-      <button id="generateZonesBtn">Create User Zones</button>
-
-      <div id="zoneConfigArea"></div>
-
-      <button id="applySetupBtn">Apply Setup to Radio</button>
-
-      <hr>
-
-      <!-- ⚡ QUICK TX SETTING -->
       <h3>Radio Options</h3>
+
+      <!-- REQUIRED FOR JS -->
       <label>
         <input type="checkbox" id="quickToggle">
-        Enable Quick-Access Transmit Button
+        Enable Quick-Access TX
       </label>
 
       <hr>
 
-      <h3>Government Monitoring</h3>
-      <div id="govMonitor">
-        <div>Active Radios: <span id="activeRadioCount">0</span></div>
-        <div>Last Transmission: <span id="lastTx">None</span></div>
-        <div>Last Frequency: <span id="lastFreq">---</span></div>
-        <div>Last Mode: <span id="lastMode">---</span></div>
-      </div>
-
-      <hr>
-
-      <h3>Sync with Government</h3>
+      <h3>Sync</h3>
       <button id="syncFromGovBtn">Sync Now</button>
-      <p style="font-size:12px;color:#c3cad6;">
-        This pulls the latest government zones (including locked Zone 1) and merges with your saved user zones.
-      </p>
+
     </div>
   </div>
 
