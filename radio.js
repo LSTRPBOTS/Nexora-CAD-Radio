@@ -1,5 +1,7 @@
 // ---------- GLOBAL STATE ----------
-
+if (!window.name) {
+  window.name = "radio_" + Math.random().toString(36).slice(2);
+}
 let govZones = [];
 let userZones = [];
 let mergedZones = [];
