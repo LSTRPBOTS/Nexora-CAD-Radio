@@ -1,33 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Nexora CAD Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexora CAD System Login</title>
   <style>
-    body { background:#111; color:white; font-family:Arial; text-align:center; padding-top:50px; }
-    input, select, button { padding:10px; margin:5px; width:250px; }
-    #error { color:red; margin-top:10px; }
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      width: 250px;
+    }
+    input {
+      margin-bottom: 10px;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px;
+      background-color: #1e90ff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0078d7;
+    }
   </style>
 </head>
 <body>
+  <h1>Nexora CAD System Login</h1>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <input type="text" id="badge" placeholder="Badge / Unit ID" required>
+    <input type="text" id="unit" placeholder="Officer Unit" required>
+    <button type="submit">Login</button>
+  </form>
 
-<h1>Nexora CAD System Login</h1>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-<form onsubmit="login(); return false;">
-  <input id="username" placeholder="Username"><br>
-  <input id="password" type="password" placeholder="Password"><br>
-  <input id="badge" placeholder="Badge / Unit ID"><br>
+      const data = {
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+        badge: document.getElementById("badge").value,
+        unit: document.getElementById("unit").value
+      };
 
-  <select id="role">
-    <option>Officer</option>
-    <option>Dispatch</option>
-    <option>Government</option>
-    <option>Admin</option>
-  </select><br>
+      try {
+        const res = await fetch("https://nexora-kv-manager-creator.nexora-systems.workers.dev/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
 
-  <button type="submit">Login</button>
-  <p id="error"></p>
-</form>
+        const result = await res.json();
 
-<script src="login.js"></script>
+        if (result.success) {
+          alert("Welcome back, " + data.username + "!");
+          window.location.href = "mdt.html"; // redirect to your CAD dashboard
+        } else {
+          alert("Invalid username or password.");
+        }
+      } catch (err) {
+        alert("Error connecting to server. Please try again later.");
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 </html>
