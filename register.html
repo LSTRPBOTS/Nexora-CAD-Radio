@@ -1,69 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Account</title>
-    <style>
-        body { background:#111; color:#fff; font-family:Arial; }
-        .container {
-            max-width:400px; margin:80px auto;
-            background:#222; padding:20px; border-radius:8px;
-        }
-        input, button {
-            width:100%; padding:10px; margin-top:10px;
-            background:#333; color:#fff; border:1px solid #555;
-        }
-    </style>
+  <title>Register</title>
 </head>
 <body>
+  <h1>Register</h1>
+  <form id="registerForm">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="text" id="badge" placeholder="Badge" required>
+    <button type="submit">Register</button>
+  </form>
 
-<div class="container">
-    <h2>Create Account</h2>
-
-    <label>Username</label>
-    <input id="username" placeholder="Enter username">
-
-    <label>Password</label>
-    <input id="password" type="password" placeholder="Enter password">
-
-    <label>Badge Number</label>
-    <input id="badge" placeholder="Badge / Unit ID">
-
-    <button onclick="register()">Register</button>
-</div>
-
-<script src="users.js"></script>
-<script>
-initDefaultAdmin();
-
-function register() {
-    let users = getUsers();
-
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const badge = document.getElementById("badge").value.trim();
-
-    if (!username || !password || !badge) {
-        alert("All fields are required");
-        return;
-    }
-
-    if (users.find(u => u.username === username)) {
-        alert("Username already exists");
-        return;
-    }
-
-    users.push({
-        username,
-        password,
-        badge,
-        isAdmin: false
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = {
+        username: document.getElementById("username").value,
+        badge: document.getElementById("badge").value
+      };
+      const res = await fetch("https://nexora-kv-manager-creator.nexora-systems.workers.dev/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      alert("Registered! ID: " + result.id);
     });
-
-    saveUsers(users);
-    alert("Account created!");
-    location.href = "index.html";
-}
-</script>
-
+  </script>
 </body>
 </html>
