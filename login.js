@@ -1,57 +1,25 @@
-function login() {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const badge = document.getElementById("badge").value.trim();
-  const role = document.getElementById("role").value.trim();
-  const error = document.getElementById("error");
+document.querySelector("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  // --- ADMIN LOGIN ---
-  if (
-    username === "NEXORAADMIN" &&
-    password === "NEXORA-SYSTEM-CORE" &&
-    badge === "9574268"
-  ) {
-    localStorage.setItem("currentUser", JSON.stringify({
-      name: username,
-      badge: badge,
-      role: "Admin"
-    }));
-    window.location.href = "./admin.html";
-    return;
+  const data = {
+    username: document.querySelector("#username").value,
+    password: document.querySelector("#password").value,
+    badge: document.querySelector("#badge").value,
+    unit: document.querySelector("#unit").value
+  };
+
+  const res = await fetch("https://nexora-kv-manager-creator.nexora-systems.workers.dev/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+
+  if (result.success) {
+    alert("Welcome back, " + data.username + "!");
+    window.location.href = "mdt.html"; // or dispatch.html, whichever is next
+  } else {
+    alert("Invalid username or password.");
   }
-
-  // --- GOVERNMENT LOGIN ---
-  if (role === "Government") {
-    localStorage.setItem("currentUser", JSON.stringify({
-      name: username,
-      badge: badge,
-      role: "Government"
-    }));
-    window.location.href = "./government.html";
-    return;
-  }
-
-  // --- DISPATCH LOGIN ---
-  if (role === "Dispatch") {
-    localStorage.setItem("currentUser", JSON.stringify({
-      name: username,
-      badge: badge,
-      role: "Dispatch"
-    }));
-    window.location.href = "./dispatch.html";
-    return;
-  }
-
-  // --- OFFICER LOGIN ---
-  if (role === "Officer") {
-    localStorage.setItem("currentUser", JSON.stringify({
-      name: username,
-      badge: badge,
-      role: "Officer"
-    }));
-    window.location.href = "./mdt.html";
-    return;
-  }
-
-  error.innerText = "Invalid username, password, or badge.";
-}
+});
