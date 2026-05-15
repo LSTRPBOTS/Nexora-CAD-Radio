@@ -17,7 +17,7 @@ async function loadCommunities() {
 
     // STEP 2: If not logged in globally, send back to main login
     if (!data.success) {
-      window.location.href = "/index.html";
+      window.location.href = "/community_login.html";
       return;
     }
 
