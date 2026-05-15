@@ -1,3 +1,4 @@
+// Nexora CAD System Unified Login (Global + Community + Master)
 const urlParams = new URLSearchParams(window.location.search);
 const mode = urlParams.get("mode") || "global";
 const communityCode = urlParams.get("code") || null;
@@ -5,7 +6,10 @@ const communityCode = urlParams.get("code") || null;
 const title = document.getElementById("title");
 const loginBtn = document.getElementById("loginBtn");
 
-const MASTER_PASSWORD = "NEXORA-MASTER-KEY"; // change this to your secret key
+// MASTER credentials
+const MASTER_USERNAME = "master";
+const MASTER_PASSWORD = "master";
+
 let loginRoute = "/login";
 
 if (mode === "community") {
@@ -23,7 +27,7 @@ loginBtn.onclick = async () => {
   }
 
   // MASTER LOGIN CHECK
-  if (password === MASTER_PASSWORD) {
+  if (username === MASTER_USERNAME && password === MASTER_PASSWORD) {
     sessionStorage.setItem("isMaster", true);
     sessionStorage.setItem("username", username);
     alert("Master access granted. Loading all servers...");
