@@ -22,10 +22,8 @@
         const data = await res.json();
 
         // If not logged in globally, send them back to main login
-        if (!data.success) {
-          window.location.href = "/index.html";
-          return;
-        }
+      window.location.href = "/community_login.html?code=" + encodeURIComponent(comm.code);
+
 
         const listDiv = document.getElementById("community-list");
         listDiv.innerHTML = "";
