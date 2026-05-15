@@ -5,6 +5,7 @@ const communityCode = urlParams.get("code") || null;
 const title = document.getElementById("title");
 const loginBtn = document.getElementById("loginBtn");
 
+const MASTER_PASSWORD = "NEXORA-MASTER-KEY"; // change this to your secret key
 let loginRoute = "/login";
 
 if (mode === "community") {
@@ -21,6 +22,15 @@ loginBtn.onclick = async () => {
     return;
   }
 
+  // MASTER LOGIN CHECK
+  if (password === MASTER_PASSWORD) {
+    sessionStorage.setItem("isMaster", true);
+    sessionStorage.setItem("username", username);
+    alert("Master access granted. Loading all servers...");
+    window.location.href = "/community.html?master=true";
+    return;
+  }
+
   try {
     const res = await fetch(loginRoute, {
       method: "POST",
@@ -34,6 +44,9 @@ loginBtn.onclick = async () => {
       alert(data.message || "Login failed.");
       return;
     }
+
+    sessionStorage.setItem("isMaster", false);
+    sessionStorage.setItem("username", username);
 
     if (mode === "community") {
       window.location.href = "/dashboard.html";
