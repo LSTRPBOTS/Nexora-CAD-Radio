@@ -1,1 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Community Login</title>
+</head>
+<body>
+  <h1>Community Login</h1>
+
+  <p id="community-label"></p>
+
+  <form id="community-login-form">
+    <label>
+      Community Username:
+      <input type="text" id="comm-username" required>
+    </label>
+    <br>
+    <label>
+      Community Password:
+      <input type="password" id="comm-password" required>
+    </label>
+    <br>
+    <button type="submit">Login to Community</button>
+  </form>
+
+  <script>
+    // STEP 1: Get community code from URL (?code=XXXX)
+    const params = new URLSearchParams(window.location.search);
+    const communityCode = params.get("code");
+
+    const label = document.getElementById("community-label");
+    if (!communityCode) {
+      label.textContent = "No community selected. Go back and pick one.";
+    } else {
+      label.textContent = "Logging into community: " + communityCode;
+    }
+
+    // STEP 2: Handle form submit
+    const form = document.getElementById("community-login-form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById("comm-username").value;
+      const password = document.getElementById("comm-password").value;
+
+      try {
+        const res = await fetch("/community-login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            community_code: communityCode,
+            username,
+            password
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          alert(data.error || "Community login failed.");
+          return;
+        }
+
+        // STEP 3: On success, go to dashboard
+        window.location.href = "/dashboard.html";
+
+      } catch (err) {
+        console.error(err);
+        alert("Error logging into community.");
+      }
+    });
+  </script>
+</body>
+</html>
 
