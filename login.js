@@ -1,25 +1,47 @@
-document.querySelector("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+const urlParams = new URLSearchParams(window.location.search);
+const mode = urlParams.get("mode") || "global";
+const communityCode = urlParams.get("code") || null;
 
-  const data = {
-    username: document.querySelector("#username").value,
-    password: document.querySelector("#password").value,
-    badge: document.querySelector("#badge").value,
-    unit: document.querySelector("#unit").value
-  };
+const title = document.getElementById("title");
+const loginBtn = document.getElementById("loginBtn");
 
-  const res = await fetch("https://nexora-kv-manager-creator.nexora-systems.workers.dev/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
+let loginRoute = "/login";
 
-  const result = await res.json();
+if (mode === "community") {
+  title.textContent = "Nexora CAD System - Community Login";
+  loginRoute = "/community-login";
+}
 
-  if (result.success) {
-    alert("Welcome back, " + data.username + "!");
-    window.location.href = "mdt.html"; // or dispatch.html, whichever is next
-  } else {
-    alert("Invalid username or password.");
+loginBtn.onclick = async () => {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!username || !password) {
+    alert("Please enter both username and password.");
+    return;
   }
-});
+
+  try {
+    const res = await fetch(loginRoute, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, communityCode }),
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.message || "Login failed.");
+      return;
+    }
+
+    if (mode === "community") {
+      window.location.href = "/dashboard.html";
+    } else {
+      window.location.href = "/community.html";
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error connecting to server.");
+  }
+};
