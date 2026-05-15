@@ -1,46 +1,32 @@
-// ======================================================
-// COMMUNITY SELECTOR SYSTEM
-// ======================================================
-// This script runs on community.html
-// It loads the user's communities and lets them pick one
-// ======================================================
-
-// STEP 1: Load communities from backend
 async function loadCommunities() {
   try {
     const res = await fetch("/communities", {
       method: "GET",
-      credentials: "include" // sends cookies/session
+      credentials: "include",
     });
-
     const data = await res.json();
 
-    // STEP 2: If not logged in globally, send back to main login
     if (!data.success) {
-      window.location.href = "/community_login.html";
+      window.location.href = "/index.html";
       return;
     }
 
-    const listDiv = document.getElementById("community-list");
+    const listDiv = document.getElementById("communityList");
     listDiv.innerHTML = "";
 
-    // STEP 3: For each community, create a button
-    data.communities.forEach(comm => {
+    data.communities.forEach(c => {
       const btn = document.createElement("button");
-      btn.textContent = comm.name + " (" + comm.code + ")";
+      btn.className = "community-btn";
+      btn.textContent = `${c.name} (${c.code})`;
       btn.onclick = () => {
-        // STEP 4: When clicked, go to community_login.html with the community code
-        window.location.href = "/community_login.html?code=" + encodeURIComponent(comm.code);
+        window.location.href = `/index.html?mode=community&code=${encodeURIComponent(c.code)}`;
       };
       listDiv.appendChild(btn);
-      listDiv.appendChild(document.createElement("br"));
     });
-
   } catch (err) {
     console.error(err);
     alert("Error loading communities.");
   }
 }
 
-// STEP 5: Run when page loads
-window.addEventListener("load", loadCommunities);
+loadCommunities();
