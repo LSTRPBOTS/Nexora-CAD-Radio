@@ -1,6 +1,9 @@
 async function loadCommunities() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isMaster = urlParams.get("master") === "true";
+
   try {
-    const res = await fetch("/communities", {
+    const res = await fetch(isMaster ? "/communities?all=true" : "/communities", {
       method: "GET",
       credentials: "include",
     });
@@ -19,7 +22,7 @@ async function loadCommunities() {
       btn.className = "community-btn";
       btn.textContent = `${c.name} (${c.code})`;
       btn.onclick = () => {
-        window.location.href = `/index.html?mode=community&code=${encodeURIComponent(c.code)}`;
+        window.location.href = `/index.html?mode=community&code=${encodeURIComponent(c.code)}&master=${isMaster}`;
       };
       listDiv.appendChild(btn);
     });
