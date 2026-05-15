@@ -1,1 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Community</title>
+</head>
+<body>
+  <h1>Select Your Community</h1>
+  <div id="community-list">
+    <!-- Communities will be loaded here -->
+  </div>
+
+  <script>
+    // STEP 1: On page load, ask the server for this user's communities
+    async function loadCommunities() {
+      try {
+        const res = await fetch("/communities", {
+          method: "GET",
+          credentials: "include" // send cookies/session
+        });
+
+        const data = await res.json();
+
+        // If not logged in globally, send them back to main login
+        if (!data.success) {
+          window.location.href = "/index.html";
+          return;
+        }
+
+        const listDiv = document.getElementById("community-list");
+        listDiv.innerHTML = "";
+
+        // STEP 2: For each community, create a button
+        data.communities.forEach(comm => {
+          const btn = document.createElement("button");
+          btn.textContent = comm.name + " (" + comm.code + ")";
+          btn.onclick = () => {
+            // STEP 3: When clicked, go to community_login.html with the community code in the URL
+            window.location.href = "/community_login.html?code=" + encodeURIComponent(comm.code);
+          };
+          listDiv.appendChild(btn);
+          listDiv.appendChild(document.createElement("br"));
+        });
+
+      } catch (err) {
+        console.error(err);
+        alert("Error loading communities.");
+      }
+    }
+
+    loadCommunities();
+  </script>
+</body>
+</html>
 
