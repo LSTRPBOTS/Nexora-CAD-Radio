@@ -12,7 +12,6 @@
       padding-top: 60px;
     }
     h1 { margin-bottom: 20px; }
-    h2 { margin-top: 40px; }
     input {
       width: 300px;
       padding: 8px;
@@ -40,32 +39,7 @@
   </style>
 </head>
 <body>
-  <h1>Select or Create Your Community</h1>
-  <button id="adminLoginBtn">Admin Login</button>
-
-  <!-- Admin Login -->
-  <div id="adminLoginPanel" style="display:none; margin-top:20px;">
-    <h2>Admin Login</h2>
-    <input id="adminUsername" placeholder="Username"><br>
-    <input id="adminPassword" type="password" placeholder="Password"><br>
-    <button id="adminLoginSubmit">Login</button>
-  </div>
-
-  <!-- Create New Community -->
-  <h2>Create New Community</h2>
-  <input id="newCommunityName" placeholder="Community Name"><br>
-  <input id="newCommunityCode" placeholder="Community ID (short code)"><br>
-  <input id="newOwnerEmail" placeholder="Your Email (for staff contact)"><br>
-  <button id="createCommunityBtn">Register New Community</button>
-
-  <!-- Staff Approval -->
-  <h2>Staff Approval</h2>
-  <input id="approveCode" placeholder="Community Code to Approve"><br>
-  <input id="approverName" placeholder="Your Name or Email"><br>
-  <button id="approveBtn">Approve Community</button>
-
-  <!-- Existing Communities -->
-  <h2>Existing Communities</h2>
+  <h1>Select Your Community</h1>
   <div id="communityList"><p>Loading communities...</p></div>
 
   <script src="community.js"></script>
