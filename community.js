@@ -17,14 +17,14 @@ async function loadCommunities() {
       let buttonAction;
 
       if (isMaster) {
-        buttonLabel = "Open Admin Panel";
+        buttonLabel = "Access Community (Master)";
         buttonAction = `window.location.href='/admin.html?community=${comm.code}'`;
       } else if (currentCommunity === comm.code) {
         buttonLabel = "Go to Community";
         buttonAction = `window.location.href='/community_login.html?code=${comm.code}'`;
       } else {
         buttonLabel = "Join Community";
-        buttonAction = `registerCommunity('${comm.code}')`;
+        buttonAction = `joinCommunity('${comm.code}')`;
       }
 
       div.innerHTML = `
@@ -40,22 +40,20 @@ async function loadCommunities() {
   }
 }
 
-async function registerCommunity(code) {
-  const ownerEmail = prompt("Enter your email for staff contact:");
-  if (!ownerEmail) return;
+// --- Join Community (username + ID only) ---
+function joinCommunity(code) {
+  const username = prompt("Enter your username:");
+  if (!username) return;
+  const idNumber = prompt("Enter your ID number:");
+  if (!idNumber) return;
 
-  try {
-    const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/register-community", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: code, code, ownerEmail }),
-    });
-    const data = await res.json();
-    alert(data.message);
-  } catch (err) {
-    console.error("Error registering:", err);
-    alert("Error connecting to server.");
-  }
+  // Save login info locally
+  localStorage.setItem("currentCommunity", code);
+  localStorage.setItem("username", username);
+  localStorage.setItem("idNumber", idNumber);
+
+  alert(`Welcome ${username} (#${idNumber}) to ${code}!`);
+  window.location.href = `/community_login.html?code=${encodeURIComponent(code)}`;
 }
 
 document.addEventListener("DOMContentLoaded", loadCommunities);
