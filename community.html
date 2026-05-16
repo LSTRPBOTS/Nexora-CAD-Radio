@@ -2,54 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nexora CAD System - Community Selector</title>
   <style>
     body {
-      background-color: #0a0a0a;
+      background-color: #000;
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      padding-top: 50px;
+      padding-top: 80px;
     }
-    .community-btn {
+    h1 { margin-bottom: 40px; }
+    #communityList { margin-top: 20px; }
+    .community-item {
+      background-color: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 10px auto;
+      width: 320px;
+    }
+    button {
+      padding: 8px 16px;
       background-color: #0078d7;
-      color: #fff;
+      color: white;
       border: none;
-      border-radius: 5px;
-      padding: 10px 20px;
-      margin: 10px;
+      border-radius: 4px;
       cursor: pointer;
     }
-    .community-btn:hover {
-      background-color: #005fa3;
-    }
-    #topBar {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-    }
-    #registerBtn {
-      background-color: #0078d7;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-    #registerBtn:hover {
-      background-color: #005fa3;
-    }
+    button:hover { background-color: #005fa3; }
   </style>
 </head>
 <body>
-  <div id="topBar">
-    <button id="registerBtn">Register Community</button>
-  </div>
+  <h1>Select Your Community</h1>
+  <div id="communityList"><p>Loading communities...</p></div>
 
-  <h2>Select Your Community</h2>
-  <div id="communityList"></div>
+  <script>
+    async function loadCommunities() {
+      try {
+        const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/communities?all=true");
+        const text = await res.text();
 
-  <script src="community.js"></script>
+        if (text.startsWith("<")) {
+          console.error("Received HTML instead of JSON:", text.slice(0, 100));
+          alert("Server returned HTML instead of JSON. Check Worker URL or deployment.");
+          return;
+        }
+
+        const data = JSON.parse(text);
+        console.log("Communities loaded:", data);
+
+        const container = document.getElementById("communityList");
+        container.innerHTML = "";
+
+        if (!data.communities || data.communities.length === 0) {
+          container.innerHTML = "<p>No communities found.</p>";
+          return;
+        }
+
+        data.communities.forEach(comm => {
+          const div = document.createElement("div");
+          div.className = "community-item";
+          div.innerHTML = `
+            <h3>${comm.name}</h3>
+            <p>Code: ${comm.code}</p>
+            <button onclick="registerCommunity('${comm.name}','${comm.code}')">Register</button>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error("Error loading communities:", err);
+        alert("Error connecting to server. Check Worker deployment.");
+      }
+    }
+
+    async function registerCommunity(name, code) {
+      const ownerEmail = prompt("Enter your email for staff contact:");
+      if (!ownerEmail) return;
+
+      try {
+        const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/register-community", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, code, ownerEmail }),
+        });
+
+        const data = await res.json();
+        alert(data.message);
+      } catch (err) {
+        console.error("Error registering community:", err);
+        alert("Error connecting to server. Check Worker deployment.");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadCommunities);
+  </script>
 </body>
 </html>
