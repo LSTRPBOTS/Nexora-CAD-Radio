@@ -41,9 +41,9 @@
 </head>
 <body>
   <h1>Select or Create Your Community</h1>
-  <button id="adminPanelBtn">Admin Panel</button>
+  <button id="adminPanelBtn" style="display:none;">Admin Panel</button>
 
-  <!-- Create New Community -->
+  <!-- Create New Community (normal users) -->
   <h2>Create New Community</h2>
   <input id="newCommunityName" placeholder="Community Name"><br>
   <input id="newCommunityCode" placeholder="Community ID (short code)"><br>
@@ -56,7 +56,7 @@
   <input id="approverName" placeholder="Your Name or Email"><br>
   <button id="approveBtn">Approve Community</button>
 
-  <!-- Admin Panel -->
+  <!-- Admin Panel (master only) -->
   <div id="adminPanel" style="display:none; margin-top:40px;">
     <h2>Admin Panel (Master Only)</h2>
     <input id="adminCommunityName" placeholder="Community Name"><br>
