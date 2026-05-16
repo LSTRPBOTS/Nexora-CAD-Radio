@@ -11,9 +11,7 @@
       text-align: center;
       padding-top: 80px;
     }
-    h1 {
-      margin-bottom: 40px;
-    }
+    h1 { margin-bottom: 40px; }
     input {
       width: 300px;
       padding: 8px;
@@ -29,9 +27,7 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #005fa3;
-    }
+    button:hover { background-color: #005fa3; }
   </style>
 </head>
 <body>
@@ -43,7 +39,6 @@
   <button id="registerBtn">Register Community</button>
 
   <script>
-    // --- FIXED INLINE SCRIPT ---
     document.getElementById("registerBtn").addEventListener("click", async () => {
       const name = document.getElementById("communityName").value.trim();
       const code = document.getElementById("communityCode").value.trim();
