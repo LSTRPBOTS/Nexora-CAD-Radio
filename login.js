@@ -28,7 +28,7 @@ loginBtn.onclick = async () => {
 
   // MASTER LOGIN CHECK
   if (username === MASTER_USERNAME && password === MASTER_PASSWORD) {
-    sessionStorage.setItem("isMaster", true);
+    sessionStorage.setItem("isMaster", "true");
     sessionStorage.setItem("username", username);
     alert("Master access granted. Loading all servers...");
     window.location.href = "/community.html?master=true";
@@ -49,7 +49,7 @@ loginBtn.onclick = async () => {
       return;
     }
 
-    sessionStorage.setItem("isMaster", false);
+    sessionStorage.setItem("isMaster", "false");
     sessionStorage.setItem("username", username);
 
     if (mode === "community") {
