@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Nexora CAD System - Admin Panel</title>
+  <title>Nexora CAD System - Master Panel</title>
   <style>
     body {
       background-color: #000;
@@ -12,6 +12,14 @@
       padding-top: 60px;
     }
     h1 { margin-bottom: 20px; }
+    .community-item {
+      background-color: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 10px auto;
+      width: 320px;
+    }
     button {
       padding: 8px 16px;
       background-color: #0078d7;
@@ -21,18 +29,10 @@
       cursor: pointer;
     }
     button:hover { background-color: #005fa3; }
-    .community-item {
-      background-color: #111;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 10px;
-      margin: 10px auto;
-      width: 320px;
-    }
   </style>
 </head>
 <body>
-  <h1>Admin Panel</h1>
+  <h1>Master Access Panel</h1>
   <div id="adminContent"><p>Loading communities...</p></div>
 
   <script>
@@ -54,26 +54,15 @@
         div.innerHTML = `
           <h3>${comm.name}</h3>
           <p>Code: ${comm.code}</p>
-          <button onclick="approveCommunity('${comm.code}')">Approve</button>
-          <button onclick="denyCommunity('${comm.code}')">Deny</button>
+          <button onclick="openCommunity('${comm.code}')">Enter Server</button>
         `;
         container.appendChild(div);
       });
     }
 
-    async function approveCommunity(code) {
-      const approver = "MasterAdmin";
-      const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/approve-community", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, approver }),
-      });
-      const data = await res.json();
-      alert(data.message);
-    }
-
-    function denyCommunity(code) {
-      alert(`Community ${code} denied and removed.`);
+    function openCommunity(code) {
+      alert(`Master access granted to ${code}.`);
+      window.location.href = `/community_login.html?code=${encodeURIComponent(code)}&master=true`;
     }
 
     document.addEventListener("DOMContentLoaded", loadAdminCommunities);
