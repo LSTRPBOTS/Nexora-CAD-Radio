@@ -41,9 +41,17 @@
 </head>
 <body>
   <h1>Select or Create Your Community</h1>
-  <button id="adminPanelBtn" style="display:none;">Admin Panel</button>
+  <button id="adminLoginBtn">Admin Login</button>
 
-  <!-- Create New Community (normal users) -->
+  <!-- Admin Login -->
+  <div id="adminLoginPanel" style="display:none; margin-top:20px;">
+    <h2>Admin Login</h2>
+    <input id="adminUsername" placeholder="Username"><br>
+    <input id="adminPassword" type="password" placeholder="Password"><br>
+    <button id="adminLoginSubmit">Login</button>
+  </div>
+
+  <!-- Create New Community -->
   <h2>Create New Community</h2>
   <input id="newCommunityName" placeholder="Community Name"><br>
   <input id="newCommunityCode" placeholder="Community ID (short code)"><br>
@@ -55,16 +63,6 @@
   <input id="approveCode" placeholder="Community Code to Approve"><br>
   <input id="approverName" placeholder="Your Name or Email"><br>
   <button id="approveBtn">Approve Community</button>
-
-  <!-- Admin Panel (master only) -->
-  <div id="adminPanel" style="display:none; margin-top:40px;">
-    <h2>Admin Panel (Master Only)</h2>
-    <input id="adminCommunityName" placeholder="Community Name"><br>
-    <input id="adminCommunityCode" placeholder="Community ID (short code)"><br>
-    <input id="adminOwnerEmail" placeholder="Owner Email"><br>
-    <input id="adminMasterKey" placeholder="Master Key"><br>
-    <button id="adminCreateBtn">Create Community (Bypass Approval)</button>
-  </div>
 
   <!-- Existing Communities -->
   <h2>Existing Communities</h2>
