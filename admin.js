@@ -1,36 +1,29 @@
-const user = JSON.parse(localStorage.getItem("currentUser"));
-if (!user || user.role !== "Admin") window.location.href = "./index.html";
+document.getElementById("createBtn").onclick = async () => {
+  const name = document.getElementById("communityName").value.trim();
+  const code = document.getElementById("communityCode").value.trim();
 
-document.getElementById("userInfo").innerText =
-  `Logged in as: ${user.name} (${user.badge})`;
+  if (!name || !code) {
+    alert("Please fill out both fields.");
+    return;
+  }
 
-let govOfficials = JSON.parse(localStorage.getItem("govOfficials")) || [];
+  try {
+    const res = await fetch("/register-community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, code }),
+    });
 
-function save() {
-  localStorage.setItem("govOfficials", JSON.stringify(govOfficials));
-  load();
-}
+    const data = await res.json();
 
-function addGov() {
-  const u = document.getElementById("govUser").value.trim();
-  const p = document.getElementById("govPass").value.trim();
-  const b = document.getElementById("govBadge").value.trim();
-
-  if (!u || !p || !b) return alert("Fill all fields.");
-
-  govOfficials.push({ username: u, password: p, badge: b });
-  save();
-}
-
-function load() {
-  const list = document.getElementById("govList");
-  list.innerHTML = "";
-
-  govOfficials.forEach(g => {
-    const div = document.createElement("div");
-    div.innerText = `${g.username} (${g.badge})`;
-    list.appendChild(div);
-  });
-}
-
-load();
+    if (data.success) {
+      alert("Community registered successfully!");
+      window.location.href = "/community.html?master=true";
+    } else {
+      alert(data.message || "Failed to register community.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error connecting to server.");
+  }
+};
