@@ -55,4 +55,31 @@ async function registerCommunity(name, code) {
   }
 }
 
+// --- NEW: Create New Community ---
+document.getElementById("createCommunityBtn").addEventListener("click", async () => {
+  const name = document.getElementById("newCommunityName").value.trim();
+  const code = document.getElementById("newCommunityCode").value.trim();
+  const ownerEmail = document.getElementById("newOwnerEmail").value.trim();
+
+  if (!name || !code || !ownerEmail) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/register-community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, code, ownerEmail }),
+    });
+
+    const data = await res.json();
+    alert(data.message);
+    loadCommunities(); // refresh list
+  } catch (err) {
+    console.error("Error creating community:", err);
+    alert("Error connecting to server. Check Worker deployment.");
+  }
+});
+
 document.addEventListener("DOMContentLoaded", loadCommunities);
