@@ -75,4 +75,34 @@ document.getElementById("approveBtn").addEventListener("click", async () => {
 // --- Admin login ---
 document.getElementById("adminLoginBtn").addEventListener("click", () => {
   const panel = document.getElementById("adminLoginPanel");
-  panel.style.display = panel.style.display === "none" ? "
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+});
+
+document.getElementById("adminLoginSubmit").addEventListener("click", async () => {
+  const username = document.getElementById("adminUsername").value.trim();
+  const password = document.getElementById("adminPassword").value.trim();
+
+  if (!username || !password) return alert("Enter both username and password.");
+
+  try {
+    const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/admin-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem("isMasterLogin", "true");
+      alert("Admin login successful.");
+      document.getElementById("adminLoginPanel").style.display = "none";
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    console.error("Error logging in:", err);
+    alert("Error connecting to server.");
+  }
+});
+
+document.addEventListener("DOMContentLoaded", loadCommunities);
