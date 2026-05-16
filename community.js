@@ -10,6 +10,7 @@ async function loadCommunities() {
     const data = await res.json();
 
     if (!data.success) {
+      alert("Error loading communities.");
       window.location.href = "/index.html";
       return;
     }
@@ -22,10 +23,21 @@ async function loadCommunities() {
       btn.className = "community-btn";
       btn.textContent = `${c.name} (${c.code})`;
       btn.onclick = () => {
-        window.location.href = `/index.html?mode=community&code=${encodeURIComponent(c.code)}&master=${isMaster}`;
+        window.location.href =
+          `/index.html?mode=community&code=${encodeURIComponent(c.code)}&master=${isMaster}`;
       };
       listDiv.appendChild(btn);
     });
+
+    const registerBtn = document.getElementById("registerBtn");
+    if (isMaster) {
+      registerBtn.style.display = "inline-block";
+      registerBtn.onclick = () => {
+        window.location.href = "/admin.html";
+      };
+    } else {
+      registerBtn.style.display = "none";
+    }
   } catch (err) {
     console.error(err);
     alert("Error loading communities.");
