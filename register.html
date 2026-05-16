@@ -2,14 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Register Community</title>
+  <title>Nexora CAD System - Community Selector</title>
   <style>
     body {
-      background-color: #0d0d0d;
-      color: white;
+      background-color: #000;
+      color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 100px;
+      padding-top: 80px;
+    }
+    h1 {
+      margin-bottom: 40px;
     }
     input {
       width: 300px;
@@ -32,8 +35,7 @@
   </style>
 </head>
 <body>
-  <h2>Register Your Community</h2>
-  <p>Fill out the form below. Staff will review and approve your community.</p>
+  <h1>Select Your Community</h1>
 
   <input id="communityName" placeholder="Community Name"><br>
   <input id="communityCode" placeholder="Community ID (short code)"><br>
@@ -41,7 +43,7 @@
   <button id="registerBtn">Register Community</button>
 
   <script>
-    // --- FIXED SCRIPT ---
+    // --- FIXED INLINE SCRIPT ---
     document.getElementById("registerBtn").addEventListener("click", async () => {
       const name = document.getElementById("communityName").value.trim();
       const code = document.getElementById("communityCode").value.trim();
@@ -52,7 +54,6 @@
         return;
       }
 
-      // Log to console so you can see the click firing
       console.log("Register button clicked. Sending data...");
 
       try {
