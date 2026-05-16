@@ -3,12 +3,22 @@ document.getElementById("registerBtn").onclick = async () => {
   const code = document.getElementById("communityCode").value.trim();
   const ownerEmail = document.getElementById("ownerEmail").value.trim();
 
-  const res = await fetch("/register-community", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, code, ownerEmail }),
-  });
+  if (!name || !code || !ownerEmail) {
+    alert("Please fill out all fields.");
+    return;
+  }
 
-  const data = await res.json();
-  alert(data.message);
+  try {
+    const res = await fetch("/register-community", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, code, ownerEmail }),
+    });
+
+    const data = await res.json();
+    alert(data.message);
+  } catch (err) {
+    alert("Error connecting to server. Check Worker deployment.");
+    console.error(err);
+  }
 };
