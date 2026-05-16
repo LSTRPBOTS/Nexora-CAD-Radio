@@ -2,38 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nexora CAD System - Admin Panel</title>
   <style>
     body {
-      background-color: #0a0a0a;
+      background-color: #000;
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      padding-top: 50px;
+      padding-top: 60px;
     }
-    input, button {
-      margin: 10px;
-      padding: 10px;
-      border-radius: 5px;
-      border: none;
-    }
+    h1 { margin-bottom: 20px; }
     button {
+      padding: 8px 16px;
       background-color: #0078d7;
-      color: #fff;
+      color: white;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #005fa3;
+    button:hover { background-color: #005fa3; }
+    .community-item {
+      background-color: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 10px auto;
+      width: 320px;
     }
   </style>
 </head>
 <body>
-  <h2>Admin Panel - Register New Community</h2>
-  <input type="text" id="communityName" placeholder="Community Name">
-  <input type="text" id="communityCode" placeholder="Community Code">
-  <button id="createBtn">Create Community</button>
+  <h1>Admin Panel</h1>
+  <div id="adminContent"><p>Loading communities...</p></div>
 
-  <script src="admin.js"></script>
+  <script>
+    const isMaster = localStorage.getItem("isMasterLogin") === "true";
+    if (!isMaster) {
+      alert("Access denied. Master login required.");
+      window.location.href = "/community.html";
+    }
+
+    async function loadAdminCommunities() {
+      const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/communities?all=true");
+      const data = await res.json();
+      const container = document.getElementById("adminContent");
+      container.innerHTML = "";
+
+      data.communities.forEach(comm => {
+        const div = document.createElement("div");
+        div.className = "community-item";
+        div.innerHTML = `
+          <h3>${comm.name}</h3>
+          <p>Code: ${comm.code}</p>
+          <button onclick="approveCommunity('${comm.code}')">Approve</button>
+          <button onclick="denyCommunity('${comm.code}')">Deny</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function approveCommunity(code) {
+      const approver = "MasterAdmin";
+      const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/approve-community", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, approver }),
+      });
+      const data = await res.json();
+      alert(data.message);
+    }
+
+    function denyCommunity(code) {
+      alert(`Community ${code} denied and removed.`);
+    }
+
+    document.addEventListener("DOMContentLoaded", loadAdminCommunities);
+  </script>
 </body>
 </html>
