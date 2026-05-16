@@ -40,6 +40,36 @@
   <input id="ownerEmail" placeholder="Your Email (for staff contact)"><br>
   <button id="registerBtn">Register Community</button>
 
-  <script src="register.js"></script>
+  <script>
+    // --- FIXED SCRIPT ---
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      const name = document.getElementById("communityName").value.trim();
+      const code = document.getElementById("communityCode").value.trim();
+      const ownerEmail = document.getElementById("ownerEmail").value.trim();
+
+      if (!name || !code || !ownerEmail) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      // Log to console so you can see the click firing
+      console.log("Register button clicked. Sending data...");
+
+      try {
+        const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/register-community", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, code, ownerEmail }),
+        });
+
+        const data = await res.json();
+        console.log("Response:", data);
+        alert(data.message || "Registration complete.");
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error connecting to server. Check Worker deployment.");
+      }
+    });
+  </script>
 </body>
 </html>
