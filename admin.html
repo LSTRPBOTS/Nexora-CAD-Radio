@@ -1,56 +1,39 @@
-<div style="
-  width:100%;
-  background:#0d0f12;
-  padding:15px;
-  display:flex;
-  gap:20px;
-  border-bottom:2px solid #1e2630;
-  font-family:Arial;
-  position:fixed;
-  top:0;
-  left:0;
-  z-index:9999;
-">
-  <a href="index.html" style="color:#4aa3ff; text-decoration:none;">Login</a>
-  <a href="register.html" style="color:#4aa3ff; text-decoration:none;">Register</a>
-  <a href="admin.html" style="color:#4aa3ff; text-decoration:none;">Admin</a>
-  <a href="cad.html" style="color:#4aa3ff; text-decoration:none;">CAD</a>
-  <a href="mdt.html" style="color:#4aa3ff; text-decoration:none;">MDT</a>
-  <a href="radio.html" style="color:#4aa3ff; text-decoration:none;">Radio</a>
-  <a href="government.html" style="color:#4aa3ff; text-decoration:none;">Government</a>
-</div>
-
-<!-- Add margin so the page content isn't hidden behind the navbar -->
-<div style="margin-top:80px;"></div>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Admin Panel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexora CAD System - Admin Panel</title>
   <style>
-    body { background:#111; color:white; font-family:Arial; padding:20px; }
-    input, button { padding:10px; margin:5px; }
-    .box { background:#222; padding:15px; border:1px solid #333; margin-bottom:20px; }
+    body {
+      background-color: #0a0a0a;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background-color: #0078d7;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
   </style>
 </head>
 <body>
+  <h2>Admin Panel - Register New Community</h2>
+  <input type="text" id="communityName" placeholder="Community Name">
+  <input type="text" id="communityCode" placeholder="Community Code">
+  <button id="createBtn">Create Community</button>
 
-<h1>Admin Panel</h1>
-<div id="userInfo"></div>
-
-<div class="box">
-  <h2>Add Government Official</h2>
-  <input id="govUser" placeholder="Username">
-  <input id="govPass" placeholder="Password">
-  <input id="govBadge" placeholder="Badge Number">
-  <button onclick="addGov()">Add Official</button>
-</div>
-
-<div class="box">
-  <h2>Existing Government Officials</h2>
-  <div id="govList"></div>
-</div>
-
-<script src="admin.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>
