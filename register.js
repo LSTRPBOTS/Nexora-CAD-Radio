@@ -1,6 +1,3 @@
-// Make sure this file is in the same folder as register.html
-// and that your Worker is deployed at nexora-systems-worker.nexora-systems.workers.dev
-
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("registerBtn");
   if (!btn) {
@@ -27,7 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ name, code, ownerEmail }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      if (text.startsWith("<")) {
+        console.error("Received HTML instead of JSON:", text.slice(0, 100));
+        alert("Server returned HTML instead of JSON. Check Worker URL or deployment.");
+        return;
+      }
+
+      const data = JSON.parse(text);
       console.log("Response:", data);
       alert(data.message || "Registration complete.");
     } catch (err) {
