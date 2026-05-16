@@ -38,7 +38,44 @@
   <input id="ownerEmail" placeholder="Your Email (for staff contact)"><br>
   <button id="registerBtn">Register Community</button>
 
-  <!-- Link your JS file here -->
-  <script src="register.js"></script>
+  <script>
+    // --- FIXED INLINE SCRIPT ---
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      const name = document.getElementById("communityName").value.trim();
+      const code = document.getElementById("communityCode").value.trim();
+      const ownerEmail = document.getElementById("ownerEmail").value.trim();
+
+      if (!name || !code || !ownerEmail) {
+        alert("Please fill out all fields.");
+        return;
+      }
+
+      console.log("Register button clicked. Sending data...");
+
+      try {
+        // Direct call to Worker domain to avoid HTML response
+        const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/register-community", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, code, ownerEmail }),
+        });
+
+        // Check if response is JSON before parsing
+        const text = await res.text();
+        if (text.startsWith("<")) {
+          console.error("Received HTML instead of JSON:", text.slice(0, 100));
+          alert("Server returned HTML instead of JSON. Check Worker URL.");
+          return;
+        }
+
+        const data = JSON.parse(text);
+        console.log("Response:", data);
+        alert(data.message || "Registration complete.");
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Error connecting to server. Check Worker deployment.");
+      }
+    });
+  </script>
 </body>
 </html>
