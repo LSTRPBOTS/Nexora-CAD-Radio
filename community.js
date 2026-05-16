@@ -1,47 +1,48 @@
+// --- community.js (fixed) ---
 async function loadCommunities() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const isMaster = urlParams.get("master") === "true";
-
   try {
-    const res = await fetch(isMaster ? "/communities?all=true" : "/communities", {
-      method: "GET",
-      credentials: "include",
-    });
-    const data = await res.json();
+    // Always call the Worker domain directly
+    const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/communities?all=true");
+    const text = await res.text();
 
-    if (!data.success) {
-      alert("Error loading communities.");
-      window.location.href = "/index.html";
+    // Detect if we accidentally got HTML
+    if (text.startsWith("<")) {
+      console.error("Received HTML instead of JSON:", text.slice(0, 100));
+      alert("Server returned HTML instead of JSON. Check Worker URL or deployment.");
       return;
     }
 
-    const listDiv = document.getElementById("communityList");
-    listDiv.innerHTML = "";
+    const data = JSON.parse(text);
+    console.log("Communities loaded:", data);
 
-    data.communities.forEach(c => {
-      const btn = document.createElement("button");
-      btn.className = "community-btn";
-      btn.textContent = `${c.name} (${c.code})`;
-      btn.onclick = () => {
-        window.location.href =
-          `/index.html?mode=community&code=${encodeURIComponent(c.code)}&master=${isMaster}`;
-      };
-      listDiv.appendChild(btn);
-    });
+    const container = document.getElementById("communityList");
+    container.innerHTML = "";
 
-    const registerBtn = document.getElementById("registerBtn");
-    if (isMaster) {
-      registerBtn.style.display = "inline-block";
-      registerBtn.onclick = () => {
-        window.location.href = "/admin.html";
-      };
-    } else {
-      registerBtn.style.display = "none";
+    if (!data.communities || data.communities.length === 0) {
+      container.innerHTML = "<p>No communities found.</p>";
+      return;
     }
+
+    data.communities.forEach(comm => {
+      const div = document.createElement("div");
+      div.className = "community-item";
+      div.innerHTML = `
+        <h3>${comm.name}</h3>
+        <p>Code: ${comm.code}</p>
+        <button onclick="loginToCommunity('${comm.code}')">Login</button>
+      `;
+      container.appendChild(div);
+    });
   } catch (err) {
-    console.error(err);
-    alert("Error loading communities.");
+    console.error("Error loading communities:", err);
+    alert("Error connecting to server. Check Worker deployment.");
   }
 }
 
-loadCommunities();
+async function loginToCommunity(code) {
+  console.log("Logging into community:", code);
+  window.location.href = `/community_login.html?code=${encodeURIComponent(code)}`;
+}
+
+// Load communities when page opens
+document.addEventListener("DOMContentLoaded", loadCommunities);
