@@ -9,17 +9,16 @@
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      padding-top: 80px;
+      padding-top: 60px;
     }
-    h1 { margin-bottom: 40px; }
-    #communityList { margin-top: 20px; }
-    .community-item {
-      background-color: #111;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 10px;
-      margin: 10px auto;
-      width: 320px;
+    h1 { margin-bottom: 20px; }
+    h2 { margin-top: 40px; }
+    input {
+      width: 300px;
+      padding: 8px;
+      margin: 5px;
+      border-radius: 4px;
+      border: none;
     }
     button {
       padding: 8px 16px;
@@ -30,10 +29,28 @@
       cursor: pointer;
     }
     button:hover { background-color: #005fa3; }
+    .community-item {
+      background-color: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 10px auto;
+      width: 320px;
+    }
   </style>
 </head>
 <body>
-  <h1>Select Your Community</h1>
+  <h1>Select or Create Your Community</h1>
+
+  <!-- Create New Community -->
+  <h2>Create New Community</h2>
+  <input id="newCommunityName" placeholder="Community Name"><br>
+  <input id="newCommunityCode" placeholder="Community ID (short code)"><br>
+  <input id="newOwnerEmail" placeholder="Your Email (for staff contact)"><br>
+  <button id="createCommunityBtn">Register New Community</button>
+
+  <!-- Existing Communities -->
+  <h2>Existing Communities</h2>
   <div id="communityList"><p>Loading communities...</p></div>
 
   <script src="community.js"></script>
