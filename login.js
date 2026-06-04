@@ -1,64 +1,41 @@
-// Nexora CAD System Unified Login (Global + Community + Master)
-const urlParams = new URLSearchParams(window.location.search);
-const mode = urlParams.get("mode") || "global";
-const communityCode = urlParams.get("code") || null;
+// GOOGLE LOGIN (placeholder)
+function loginGoogle() {
+  const username = prompt("Google Login: Enter your display name");
+  if (!username) return;
 
-const title = document.getElementById("title");
-const loginBtn = document.getElementById("loginBtn");
+  localStorage.setItem("authProvider", "google");
+  localStorage.setItem("username", username);
+  localStorage.setItem("authUserId", "google-" + crypto.randomUUID());
 
-// MASTER credentials
-const MASTER_USERNAME = "master";
-const MASTER_PASSWORD = "master";
-
-let loginRoute = "/login";
-
-if (mode === "community") {
-  title.textContent = "Nexora CAD System - Community Login";
-  loginRoute = "/community-login";
+  window.location.href = "/community.html";
 }
 
-loginBtn.onclick = async () => {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
+// DISCORD LOGIN (placeholder)
+function loginDiscord() {
+  const username = prompt("Discord Login: Enter your Discord username");
+  if (!username) return;
 
-  if (!username || !password) {
-    alert("Please enter both username and password.");
+  localStorage.setItem("authProvider", "discord");
+  localStorage.setItem("username", username);
+  localStorage.setItem("authUserId", "discord-" + crypto.randomUUID());
+
+  window.location.href = "/community.html";
+}
+
+// MANUAL LOGIN
+function manualLogin() {
+  const user = document.getElementById("manualUser").value.trim();
+  const pass = document.getElementById("manualPass").value.trim();
+
+  if (!user || !pass) {
+    alert("Enter username and password.");
     return;
   }
 
-  // MASTER LOGIN CHECK
-  if (username === MASTER_USERNAME && password === MASTER_PASSWORD) {
-    sessionStorage.setItem("isMaster", "true");
-    sessionStorage.setItem("username", username);
-    alert("Master access granted. Loading all servers...");
-    window.location.href = "/community.html?master=true";
-    return;
-  }
+  // For now, no backend — just store it
+  localStorage.setItem("authProvider", "manual");
+  localStorage.setItem("username", user);
+  localStorage.setItem("authUserId", "manual-" + crypto.randomUUID());
 
-  try {
-    const res = await fetch(loginRoute, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, communityCode }),
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      alert(data.message || "Login failed.");
-      return;
-    }
-
-    sessionStorage.setItem("isMaster", "false");
-    sessionStorage.setItem("username", username);
-
-    if (mode === "community") {
-      window.location.href = "/dashboard.html";
-    } else {
-      window.location.href = "/community.html";
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Error connecting to server.");
-  }
-};
+  window.location.href = "/community.html";
+}
