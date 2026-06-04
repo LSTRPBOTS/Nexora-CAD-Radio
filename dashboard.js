@@ -7,7 +7,6 @@ function loadDashboard() {
   const sessionBox = document.getElementById("sessionInfo");
   const moduleButtons = document.getElementById("moduleButtons");
 
-  // No session? Kick back to community selector
   if (!community || !username || !idNumber) {
     sessionBox.innerHTML = `
       <p>No active session found.</p>
@@ -18,38 +17,57 @@ function loadDashboard() {
     return;
   }
 
-  // Display session info
   sessionBox.innerHTML = `
     <p><strong>Community:</strong> ${community}</p>
     <p><strong>User:</strong> ${username} (#${idNumber})</p>
     <p><strong>Master Access:</strong> ${isMaster ? "YES" : "NO"}</p>
   `;
 
-  // Build module buttons
   moduleButtons.innerHTML = "";
 
-  // Civilian Module
+  // CIVILIAN
   moduleButtons.innerHTML += `
     <button class="module-btn" onclick="goTo('civilian.html')">
       Civilian Module
     </button>
   `;
 
-  // LEO Module
+  // POLICE / LEO
   moduleButtons.innerHTML += `
     <button class="module-btn" onclick="goTo('leo.html')">
       Police / LEO Module
     </button>
   `;
 
-  // Dispatch Module
+  // FIRE
+  moduleButtons.innerHTML += `
+    <button class="module-btn" onclick="goTo('fire.html')">
+      Fire Department Module
+    </button>
+  `;
+
+  // EMS
+  moduleButtons.innerHTML += `
+    <button class="module-btn" onclick="goTo('ems.html')">
+      EMS Module
+    </button>
+  `;
+
+  // DOT
+  moduleButtons.innerHTML += `
+    <button class="module-btn" onclick="goTo('dot.html')">
+      DOT / Public Works Module
+    </button>
+  `;
+
+  // DISPATCH
   moduleButtons.innerHTML += `
     <button class="module-btn" onclick="goTo('dispatch.html')">
       Dispatch Module
     </button>
   `;
 
-  // Master Panel (only if master)
+  // MASTER PANEL
   if (isMaster) {
     moduleButtons.innerHTML += `
       <button class="module-btn" onclick="goTo('admin.html')" style="background-color:#ffaa00;">
