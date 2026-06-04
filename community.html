@@ -9,23 +9,30 @@
       color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
-      padding-top: 60px;
+      padding-top: 40px;
     }
-    h1 { margin-bottom: 20px; }
+    h1 { margin-bottom: 10px; }
+    h2 { margin-top: 30px; margin-bottom: 10px; }
+    .community-list { max-width: 600px; margin: 0 auto; }
     .community-item {
       background-color: #111;
       border: 1px solid #333;
       border-radius: 6px;
       padding: 10px;
       margin: 10px auto;
-      width: 320px;
+      width: 90%;
+      text-align: left;
     }
+    .community-item h3 { margin: 0 0 5px 0; }
+    .community-item p { margin: 3px 0; font-size: 14px; color: #ccc; }
     input {
-      width: 300px;
+      width: 95%;
       padding: 8px;
-      margin: 5px;
+      margin: 5px 0;
       border-radius: 4px;
       border: none;
+      background-color: #222;
+      color: #fff;
     }
     button {
       padding: 8px 16px;
@@ -34,13 +41,65 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      margin-top: 6px;
     }
     button:hover { background-color: #005fa3; }
+    .section {
+      margin-top: 25px;
+      padding-top: 10px;
+      border-top: 1px solid #333;
+    }
   </style>
 </head>
 <body>
-  <h1>Select Your Community</h1>
-  <div id="communityList"><p>Loading communities...</p></div>
+
+  <h1>Nexora CAD System</h1>
+  <p>Select or join a community to continue.</p>
+
+  <!-- PUBLIC COMMUNITIES -->
+  <div class="section">
+    <h2>Public Communities</h2>
+    <div class="community-list">
+
+      <!-- ADMIN COMMUNITY -->
+      <div class="community-item">
+        <h3>Admin Community</h3>
+        <p>Anyone can join. No codes. No approval.</p>
+        <button onclick="joinPublicCommunity('ADMIN')">Join Admin Community</button>
+      </div>
+
+      <!-- GLOBAL RP COMMUNITY -->
+      <div class="community-item">
+        <h3>Global RP Community</h3>
+        <p>Official Nexora Global Roleplay Server</p>
+        <button onclick="joinPublicCommunity('GLOBAL-RP')">Join Global RP</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CUSTOM COMMUNITIES -->
+  <div class="section">
+    <h2>Custom Communities</h2>
+    <p>Enter a custom Community ID to join a specific server.</p>
+    <div class="community-list">
+      <div class="community-item">
+        <h3>Join by Community ID</h3>
+        <input id="customCommunityId" placeholder="Community ID">
+        <button onclick="joinCustomCommunity()">Join Custom Community</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CURRENT SESSION -->
+  <div class="section">
+    <h2>Current Session</h2>
+    <div class="community-list">
+      <div class="community-item" id="currentSessionBox">
+        <p>No community selected yet.</p>
+      </div>
+    </div>
+  </div>
 
   <script src="community.js"></script>
 </body>
