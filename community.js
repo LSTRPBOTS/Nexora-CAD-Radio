@@ -1,59 +1,67 @@
-async function loadCommunities() {
-  try {
-    const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/communities?all=true");
-    const data = await res.json();
+function loadCurrentSession() {
+  const box = document.getElementById("currentSessionBox");
+  const currentCommunity = localStorage.getItem("currentCommunity");
+  const username = localStorage.getItem("username");
+  const idNumber = localStorage.getItem("idNumber");
+  const isMaster = localStorage.getItem("isMasterLogin") === "true";
 
-    const container = document.getElementById("communityList");
-    container.innerHTML = "";
-
-    const currentCommunity = localStorage.getItem("currentCommunity");
-    const isMaster = localStorage.getItem("isMasterLogin") === "true";
-
-    data.communities.forEach(comm => {
-      const div = document.createElement("div");
-      div.className = "community-item";
-
-      let buttonLabel;
-      let buttonAction;
-
-      if (isMaster) {
-        buttonLabel = "Access Community (Master)";
-        buttonAction = `window.location.href='/admin.html?community=${comm.code}'`;
-      } else if (currentCommunity === comm.code) {
-        buttonLabel = "Go to Community";
-        buttonAction = `window.location.href='/community_login.html?code=${comm.code}'`;
-      } else {
-        buttonLabel = "Join Community";
-        buttonAction = `joinCommunity('${comm.code}')`;
-      }
-
-      div.innerHTML = `
-        <h3>${comm.name}</h3>
-        <p>Code: ${comm.code}</p>
-        <button onclick="${buttonAction}">${buttonLabel}</button>
-      `;
-      container.appendChild(div);
-    });
-  } catch (err) {
-    console.error("Error loading communities:", err);
-    alert("Error connecting to server.");
+  if (!currentCommunity) {
+    box.innerHTML = `
+      <p>No community selected yet.</p>
+      <p>Join a public community or enter a custom ID.</p>
+    `;
+    return;
   }
+
+  box.innerHTML = `
+    <p><strong>Community:</strong> ${currentCommunity}</p>
+    <p><strong>User:</strong> ${username} (#${idNumber})</p>
+    <p><strong>Master:</strong> ${isMaster ? "YES" : "NO"}</p>
+    <button onclick="goToDashboard()">Go to CAD Dashboard</button>
+  `;
 }
 
-// --- Join Community (username + ID only) ---
-function joinCommunity(code) {
+// JOIN PUBLIC COMMUNITY (ADMIN or GLOBAL-RP)
+function joinPublicCommunity(name) {
   const username = prompt("Enter your username:");
   if (!username) return;
+
   const idNumber = prompt("Enter your ID number:");
   if (!idNumber) return;
 
-  // Save login info locally
-  localStorage.setItem("currentCommunity", code);
+  localStorage.setItem("currentCommunity", name);
   localStorage.setItem("username", username);
   localStorage.setItem("idNumber", idNumber);
 
-  alert(`Welcome ${username} (#${idNumber}) to ${code}!`);
-  window.location.href = `/community_login.html?code=${encodeURIComponent(code)}`;
+  alert(`You joined ${name}.`);
+  loadCurrentSession();
 }
 
-document.addEventListener("DOMContentLoaded", loadCommunities);
+// JOIN CUSTOM COMMUNITY
+function joinCustomCommunity() {
+  const idInput = document.getElementById("customCommunityId");
+  const communityId = idInput.value.trim();
+  if (!communityId) {
+    alert("Enter a Community ID.");
+    return;
+  }
+
+  const username = prompt("Enter your username:");
+  if (!username) return;
+
+  const idNumber = prompt("Enter your ID number:");
+  if (!idNumber) return;
+
+  localStorage.setItem("currentCommunity", communityId);
+  localStorage.setItem("username", username);
+  localStorage.setItem("idNumber", idNumber);
+
+  alert(`You joined community "${communityId}".`);
+  loadCurrentSession();
+}
+
+function goToDashboard() {
+  window.location.href = "/dashboard.html";
+}
+
+document.addEventListener("DOMContentLoaded", loadCurrentSession);
