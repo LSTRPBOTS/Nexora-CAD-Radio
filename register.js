@@ -1,42 +1,22 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("registerBtn");
-  if (!btn) {
-    console.error("Register button not found!");
+function manualRegister() {
+  const user = document.getElementById("regUser").value.trim();
+  const pass = document.getElementById("regPass").value.trim();
+
+  if (!user || !pass) {
+    alert("Enter a username and password.");
     return;
   }
 
-  btn.addEventListener("click", async () => {
-    const name = document.getElementById("communityName").value.trim();
-    const code = document.getElementById("communityCode").value.trim();
-    const ownerEmail = document.getElementById("ownerEmail").value.trim();
+  // Store user in localStorage (temporary until backend)
+  const account = {
+    username: user,
+    password: pass,
+    userId: "manual-" + crypto.randomUUID()
+  };
 
-    if (!name || !code || !ownerEmail) {
-      alert("Please fill out all fields.");
-      return;
-    }
+  localStorage.setItem("account-" + user.toLowerCase(), JSON.stringify(account));
 
-    console.log("Register button clicked. Sending data...");
+  alert("Account created successfully!");
 
-    try {
-      const res = await fetch("https://nexora-systems-worker.nexora-systems.workers.dev/register-community", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, code, ownerEmail }),
-      });
-
-      const text = await res.text();
-      if (text.startsWith("<")) {
-        console.error("Received HTML instead of JSON:", text.slice(0, 100));
-        alert("Server returned HTML instead of JSON. Check Worker URL or deployment.");
-        return;
-      }
-
-      const data = JSON.parse(text);
-      console.log("Response:", data);
-      alert(data.message || "Registration complete.");
-    } catch (err) {
-      console.error("Error:", err);
-      alert("Error connecting to server. Check Worker deployment.");
-    }
-  });
-});
+  window.location.href = "/login.html";
+}
