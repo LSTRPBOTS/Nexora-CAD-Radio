@@ -61,14 +61,12 @@
     <h2>Public Communities</h2>
     <div class="community-list">
 
-      <!-- ADMIN COMMUNITY -->
       <div class="community-item">
         <h3>Admin Community</h3>
         <p>Anyone can join. No codes. No approval.</p>
         <button onclick="joinPublicCommunity('ADMIN')">Join Admin Community</button>
       </div>
 
-      <!-- GLOBAL RP COMMUNITY -->
       <div class="community-item">
         <h3>Global RP Community</h3>
         <p>Official Nexora Global Roleplay Server</p>
@@ -78,15 +76,32 @@
     </div>
   </div>
 
-  <!-- CUSTOM COMMUNITIES -->
+  <!-- REGISTER COMMUNITY -->
   <div class="section">
-    <h2>Custom Communities</h2>
-    <p>Enter a custom Community ID to join a specific server.</p>
+    <h2>Create Your Own Community</h2>
     <div class="community-list">
       <div class="community-item">
-        <h3>Join by Community ID</h3>
+        <h3>Register Community</h3>
+        <input id="regName" placeholder="Community Name">
+        <input id="regId" placeholder="Community ID (unique)">
+        <button onclick="registerCommunity()">Create Community</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- YOUR COMMUNITIES -->
+  <div class="section">
+    <h2>Your Communities</h2>
+    <div class="community-list" id="yourCommunities"></div>
+  </div>
+
+  <!-- CUSTOM COMMUNITY JOIN -->
+  <div class="section">
+    <h2>Join Custom Community</h2>
+    <div class="community-list">
+      <div class="community-item">
         <input id="customCommunityId" placeholder="Community ID">
-        <button onclick="joinCustomCommunity()">Join Custom Community</button>
+        <button onclick="joinCustomCommunity()">Join</button>
       </div>
     </div>
   </div>
