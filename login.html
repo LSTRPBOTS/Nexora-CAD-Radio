@@ -11,10 +11,7 @@
       text-align: center;
       padding-top: 60px;
     }
-    h1 {
-      margin-bottom: 20px;
-    }
-    .login-box {
+    .box {
       background-color: #111;
       border: 1px solid #333;
       border-radius: 8px;
@@ -45,23 +42,32 @@
       background-color: #222;
       color: #fff;
     }
+    .disabled {
+      background-color: #333 !important;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
 
   <h1>Nexora CAD Login</h1>
 
-  <div class="login-box">
+  <div class="box">
 
-    <button onclick="loginGoogle()">Login with Google(not in use)</button>
-    <button onclick="loginDiscord()">Login with Discord(not in use)</button>
+    <button class="disabled">Login with Google (Not in use)</button>
+    <button class="disabled">Login with Discord (Not in use)</button>
 
     <hr style="margin: 20px 0; border-color:#333;">
 
     <h3>Manual Login</h3>
-    <input id="manualUser" placeholder="Username">
-    <input id="manualPass" type="password" placeholder="Password">
+    <input id="loginUser" placeholder="Username">
+    <input id="loginPass" type="password" placeholder="Password">
     <button onclick="manualLogin()">Login</button>
+
+    <p style="margin-top:15px;">
+      Need an account?  
+      <a href="/register.html" style="color:#4da3ff;">Register</a>
+    </p>
 
   </div>
 
